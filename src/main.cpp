@@ -8,7 +8,7 @@
 #include "render/Renderer.hpp"
 #include "render/ChunkRenderer.hpp"
 #include "world/Chunk.hpp"
-#include "world/ChunkBuilder.hpp"
+#include "render/ChunkMesher.hpp"
 #include "render/Mesh.hpp"
 #include "render/Primitives.hpp"
 #include "render/Renderer.hpp"
@@ -68,7 +68,7 @@ int main() {
 
         for ( size_t i = 0; i < worldChunks.size(); ++i) {
             if (worldChunks[i].isDirty) {
-                World::ChunkBuilder::BuildMesh(worldChunks[i], renderStates[i].mesh);
+                Render::ChunkMesher::BuildMesh(worldChunks[i], renderStates[i].mesh);
                 worldChunks[i].isDirty = false;
             }
         }
