@@ -1,3 +1,0 @@
-C:/Users/Cameron/Desktop/Isometric_Voxel_Engine/build/CMakeFiles/IsometricVoxelEngine.dir
-C:/Users/Cameron/Desktop/Isometric_Voxel_Engine/build/CMakeFiles/edit_cache.dir
-C:/Users/Cameron/Desktop/Isometric_Voxel_Engine/build/CMakeFiles/rebuild_cache.dir

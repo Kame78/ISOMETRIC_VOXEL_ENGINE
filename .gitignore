@@ -1,0 +1,39 @@
+# ====================================================================
+# Build & Output Artifacts (Do NOT track compiled binaries or folders)
+# ====================================================================
+build/
+Build/
+bin/
+out/
+dist/
+
+# Ignore compiled object files and static/dynamic libraries
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# ====================================================================
+# IDE & System Caches (Keep personal editor layouts out of GitHub)
+# ====================================================================
+.vscode/
+.idea/
+*.suo
+*.user
+*.ncb
+*.pdb
+
+# Operating system system files
+.DS_Store
+Thumbs.db
+
+# ====================================================================
+# Package Management & Dependency Fetching
+# ====================================================================
+# If you use CMake FetchContent, it downloads code into subfolders. 
+# We only want to save the source paths, not the dependencies.
+_deps/
