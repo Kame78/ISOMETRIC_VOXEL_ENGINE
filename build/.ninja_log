@@ -1,0 +1,12 @@
+# ninja log v7
+35	1152	8025154806177177	CMakeFiles/IsometricVoxelEngine.dir/src/render/Mesh.cpp.obj	3c32fe91a2d0696d
+56	1231	8025154806387158	CMakeFiles/IsometricVoxelEngine.dir/src/world/ChunkBuilder.cpp.obj	ec0289c72e3faa91
+19	1471	8025154806007173	CMakeFiles/IsometricVoxelEngine.dir/src/glad.c.obj	5e545323910e84ff
+41	1617	8025154806257182	CMakeFiles/IsometricVoxelEngine.dir/src/render/Renderer.cpp.obj	b4008c4f5fcc8495
+28	1622	8025154806097167	CMakeFiles/IsometricVoxelEngine.dir/src/render/ChunkRenderer.cpp.obj	dfe425caf8debe3f
+50	2259	8025154806327177	CMakeFiles/IsometricVoxelEngine.dir/src/render/Shader.cpp.obj	59ca3cad43a96ad7
+13	2476	8025154805957152	CMakeFiles/IsometricVoxelEngine.dir/src/core/Input.cpp.obj	d0b8931b66a924db
+16	2755	8025154805987163	CMakeFiles/IsometricVoxelEngine.dir/src/core/Window.cpp.obj	352204f6a9e19048
+22	2778	8025154806037153	CMakeFiles/IsometricVoxelEngine.dir/src/main.cpp.obj	9b4ff01f11937f71
+24	2780	8025154806067160	CMakeFiles/IsometricVoxelEngine.dir/src/render/Camera.cpp.obj	de4625666115e9d4
+2780	2947	8025154833627614	IsometricVoxelEngine.exe	12afa3a9633a01e4
