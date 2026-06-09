@@ -10,7 +10,7 @@ bool Window::Create(unsigned int width, unsigned int height, std::string_view ti
     settings.stencilBits = 8;
     settings.majorVersion = 3;
     settings.minorVersion = 3;
-    settings.attributeFlags = sf::ContextSettings::Core;
+    settings.attributeFlags = sf::ContextSettings::Default;
 
     m_window.create(sf::VideoMode({width, height}), title.data(), sf::State::Windowed, settings);
     m_window.setVerticalSyncEnabled(true);

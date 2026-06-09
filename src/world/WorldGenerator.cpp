@@ -15,8 +15,8 @@ void WorldGenerator::GenerateChunk(Chunk& chunk, int chunkX, int chunkZ, float c
     );
         
     for (auto [x, z] : columns) {
-        float globalX = static_cast<float>(worldOffsetX + x);
-        float globalZ = static_cast<float>(worldOffsetZ + z);
+        float globalX = static_cast<float>(worldOffsetX + x) * 2.f;
+        float globalZ = static_cast<float>(worldOffsetZ + z) * 2.f;
 
         float landMask = Math::NoiseMath::CalculateBoundaryNoise(globalX, globalZ, centerX, centerZ, radius, seed);
             

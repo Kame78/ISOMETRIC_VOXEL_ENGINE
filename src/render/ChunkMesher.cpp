@@ -76,93 +76,95 @@ void ChunkMesher::BuildMesh(const World::Chunk& chunk,
 // === Half-Height Slabs Geometry Layout Generator (1.0 x 0.5 x 1.0) ===
 
 void ChunkMesher::AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept {
-    glm::vec3 pos(static_cast<float>(x), static_cast<float>(y) * 0.5f, static_cast<float>(z));
+    // Spatial placement stepped dynamically to reflect macro spacing footprints
+    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(0.0f, 1.0f, 0.0f);
 
     const auto& props = World::BlockRegistry::GetProperties(id);
     glm::vec4 col = props.color;
     
-    vertices.push_back({{pos.x - 0.5f, pos.y + 0.25f, pos.z + 0.5f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y + 0.25f, pos.z + 0.5f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y + 0.25f, pos.z - 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y + 0.25f, pos.z - 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y + 0.25f, pos.z - 0.5f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y + 0.25f, pos.z + 0.5f}, norm, {0.0f, 0.0f}, col});
+    // Extrusion offsets set to Half-Extents (X/Z = 1.0f, Y = 0.5f)
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
 }
 
 void ChunkMesher::AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept {
-    glm::vec3 pos(static_cast<float>(x), static_cast<float>(y) * 0.5f, static_cast<float>(z));
+    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(0.0f, -1.0f, 0.0f);
     
     const auto& props = World::BlockRegistry::GetProperties(id);
     glm::vec4 col = props.color;
 
-    vertices.push_back({{pos.x - 0.5f, pos.y - 0.25f, pos.z - 0.5f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y - 0.25f, pos.z - 0.5f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y - 0.25f, pos.z + 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y - 0.25f, pos.z + 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y - 0.25f, pos.z + 0.5f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y - 0.25f, pos.z - 0.5f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
 }
 
 void ChunkMesher::AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept {
-    glm::vec3 pos(static_cast<float>(x), static_cast<float>(y) * 0.5f, static_cast<float>(z));
+    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(0.0f, 0.0f, 1.0f);
     
     const auto& props = World::BlockRegistry::GetProperties(id);
     glm::vec4 col = props.color;
 
-    vertices.push_back({{pos.x - 0.5f, pos.y - 0.25f, pos.z + 0.5f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y - 0.25f, pos.z + 0.5f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y + 0.25f, pos.z + 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y + 0.25f, pos.z + 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y + 0.25f, pos.z + 0.5f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y - 0.25f, pos.z + 0.5f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
 }
 
 void ChunkMesher::AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept {
-    glm::vec3 pos(static_cast<float>(x), static_cast<float>(y) * 0.5f, static_cast<float>(z));
+    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(0.0f, 0.0f, -1.0f);
     
     const auto& props = World::BlockRegistry::GetProperties(id);
     glm::vec4 col = props.color;
 
-    vertices.push_back({{pos.x + 0.5f, pos.y - 0.25f, pos.z - 0.5f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y - 0.25f, pos.z - 0.5f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y + 0.25f, pos.z - 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y + 0.25f, pos.z - 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y + 0.25f, pos.z - 0.5f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y - 0.25f, pos.z - 0.5f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
 }
 
 void ChunkMesher::AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept {
-    glm::vec3 pos(static_cast<float>(x), static_cast<float>(y) * 0.5f, static_cast<float>(z));
+    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(-1.0f, 0.0f, 0.0f);
     
     const auto& props = World::BlockRegistry::GetProperties(id);
     glm::vec4 col = props.color;
 
-    vertices.push_back({{pos.x - 0.5f, pos.y - 0.25f, pos.z + 0.5f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y + 0.25f, pos.z + 0.5f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y + 0.25f, pos.z - 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y + 0.25f, pos.z - 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y - 0.25f, pos.z - 0.5f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 0.5f, pos.y - 0.25f, pos.z + 0.5f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
 }
 
 void ChunkMesher::AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept {
-    glm::vec3 pos(static_cast<float>(x), static_cast<float>(y) * 0.5f, static_cast<float>(z));
+    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(1.0f, 0.0f, 0.0f);
    
     const auto& props = World::BlockRegistry::GetProperties(id);
     glm::vec4 col = props.color;
 
-    vertices.push_back({{pos.x + 0.5f, pos.y - 0.25f, pos.z - 0.5f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y + 0.25f, pos.z - 0.5f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y + 0.25f, pos.z + 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y + 0.25f, pos.z + 0.5f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y - 0.25f, pos.z + 0.5f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 0.5f, pos.y - 0.25f, pos.z - 0.5f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
 }
 
 } // namespace Render

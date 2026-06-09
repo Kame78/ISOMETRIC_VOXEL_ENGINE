@@ -33,9 +33,9 @@ namespace World {
 
                 Chunk chunk;
                 chunk.worldPosition = glm::vec3(
-                    static_cast<float>(cx * CHUNK_SIZE),
+                    static_cast<float>(cx * CHUNK_SIZE) * 2.f,
                     0.0f,
-                    static_cast<float>(cz * CHUNK_SIZE)
+                    static_cast<float>(cz * CHUNK_SIZE) * 2.f
                 );
 
                 generator.GenerateChunk(chunk, cx, cz, centerX, centerZ, radius, seed);
@@ -46,7 +46,7 @@ namespace World {
             }
         }
 
-        decorator.DecorateWorld(m_chunks, seed);
+        //decorator.DecorateWorld(m_chunks, seed);
     
         RebuildDirtyMeshes();
     

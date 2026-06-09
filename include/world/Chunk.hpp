@@ -6,6 +6,7 @@
 
 namespace World {
     constexpr int CHUNK_SIZE = 16;
+    constexpr int TOTAL_BLOCKS = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
     enum class BlockID : uint8_t {
         AIR = 0,
@@ -15,16 +16,16 @@ namespace World {
     };
 
     struct Chunk {
-        std::array<BlockID, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
+        std::array<BlockID, TOTAL_BLOCKS> blocks{ BlockID::AIR };
         glm::vec3 worldPosition{0.0f};
         bool isDirty{ true };
     
-        BlockID GetBlock(int x, int y, int z) const {
-            return blocks[x +(y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_SIZE)];
+       [[nodiscard]] constexpr inline BlockID GetBlock(int x, int y, int z) const noexcept {
+            return blocks[static_cast<size_t>(x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_SIZE))];
         }
 
-        void SetBlock(int x, int y, int z, BlockID type) {
-            blocks[x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_SIZE)] = type;
+        constexpr inline void SetBlock(int x, int y, int z, BlockID type) noexcept {
+            blocks[static_cast<size_t>(x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_SIZE))] = type;
             isDirty = true;
         }
     };
