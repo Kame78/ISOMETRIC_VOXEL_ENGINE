@@ -7,7 +7,7 @@ include(FetchContent)
 # 1. DEPENDENCY MANAGEMENT (Find Packages)
 # ==============================================================================
 
-find_package(SFML 3.0 REQUIRED COMPONENTS System Window)
+find_package(SFML 3.0 REQUIRED COMPONENTS System Window Graphics REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glm REQUIRED)
 
@@ -78,6 +78,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     glad
     SFML::Window
     SFML::System
+    SFML::Graphics
     OpenGL::GL
     glm::glm
 )

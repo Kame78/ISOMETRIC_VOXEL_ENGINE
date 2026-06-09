@@ -3,9 +3,9 @@
 
 class Camera {
 private:
-    glm::vec3 m_target{ 0.0f, 0.0f, 0.0f};
-    float m_zoom{ 1.0f };
-    float m_aspectRatio{16.0f / 9.0f};
+    glm::vec3 m_target{ 0.0f, 10.0f, 96.0f};
+    float m_zoom{ 15.0f };
+    float m_aspectRatio{1.7777f};
 
     glm::mat4 m_viewMatrix{1.0f};
     glm::mat4 m_projectionMatrix{1.0f};

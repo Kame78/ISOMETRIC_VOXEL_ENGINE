@@ -3,7 +3,12 @@
 #include<glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
-Camera::Camera(float width, float height) {
+Camera::Camera(float width, float height) 
+    : m_target(96.f, 10.f, 96.f),
+    m_zoom(15.f),
+    m_aspectRatio(1.7777f)
+
+{
     UpdateViewport(width, height);
 }
 
@@ -15,8 +20,8 @@ void Camera::UpdateViewport(float width, float height) {
 }
 
 void Camera::ProcessInput() noexcept {
-    float camSpeed = 0.04f;
-    float zoomSpeed = 0.01f;
+    float camSpeed = 0.08f;
+    float zoomSpeed = 0.04f;
 
     if (Input::IsKeyHeld(sf::Keyboard::Key::A)) Move(glm::vec3(-camSpeed, 0.0f, -camSpeed));
     if (Input::IsKeyHeld(sf::Keyboard::Key::D)) Move(glm::vec3(camSpeed, 0.0f, camSpeed));
@@ -38,7 +43,7 @@ void Camera::SetTarget(const glm::vec3& target) {
 }
 
 void Camera::AdjustZoom(float amount) {
-    m_zoom = std::clamp(m_zoom + amount, 0.1f, 30.0f);
+    m_zoom = std::clamp(m_zoom + amount, 1.0f, 100.0f);
     UpdateMatrices();
 }
 

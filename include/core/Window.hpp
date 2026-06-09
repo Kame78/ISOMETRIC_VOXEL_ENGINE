@@ -1,15 +1,18 @@
 #pragma once
-#include <SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
 #include <string_view>
 #include <glm/glm.hpp>
+#include <SFML/Window.hpp>
+
+
 
 class Window {
 private:
-    sf::Window m_window;
     bool m_isOpen{ false };
 
     void HandleEvents();
 
+    sf::RenderWindow m_window;
 public:
     Window() = default;
     ~Window() = default;
@@ -22,4 +25,6 @@ public:
 
     bool IsOpen() const noexcept {return m_window.isOpen();}
     glm::vec2 GetSize() const noexcept;
+
+    [[nodiscard]] sf::RenderWindow& GetSFMLWindow() noexcept { return m_window; }
 };

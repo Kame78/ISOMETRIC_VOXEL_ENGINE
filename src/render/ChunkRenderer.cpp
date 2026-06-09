@@ -15,7 +15,7 @@ namespace Render{
         shader.SetMat4("uView", camera.GetViewMatrix());
 
         for (size_t i = 0; i < chunks.size(); ++i) {
-            if (renderStates[i].isVisible) {
+        //    if (renderStates[i].isVisible) {
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), chunks[i].worldPosition);
                 shader.SetMat4("uModel", model);
                 
@@ -23,4 +23,3 @@ namespace Render{
             }
         }
     }
-}
