@@ -37,7 +37,6 @@ int main() {
 
 
     sf::RenderTexture gameRenderBuffer({logicalWidth, logicalHeight}, textureSettings);
-
     gameRenderBuffer.setSmooth(false);
 
     sf::Sprite upscaleSprite(gameRenderBuffer.getTexture());
@@ -45,6 +44,8 @@ int main() {
         1920.0f / static_cast<float>(logicalWidth),
         1080.0f / static_cast<float>(logicalHeight)
 });
+
+    (void)gameRenderBuffer.setActive(true);
 
     // Load and populate the flight-weight block asset database from blocks.json
     World::BlockRegistry::Initialize();
@@ -95,14 +96,14 @@ int main() {
         // Camera transformation modifications
         camera.ProcessInput();
         
-        gameWorld.RebuildDirtyMeshes();
-        
        (void)gameRenderBuffer.setActive(true);
         glViewport(0, 0, static_cast<GLsizei>(logicalWidth), static_cast<GLsizei>(logicalHeight));
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
+
+        gameWorld.RebuildDirtyMeshes();
 
         renderer.BeginFrame();
 
