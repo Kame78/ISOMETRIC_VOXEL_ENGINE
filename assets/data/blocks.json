@@ -1,0 +1,31 @@
+{
+    "blocks": [
+        {
+            "id": 1,
+            "name": "Dirt",
+            "solid": true,
+            "transparent": false,
+            "color": [0.45, 0.34, 0.22, 1.0],
+            "textures": [2, 2, 2, 2, 2, 2],
+            "movement_cost": 1.0
+        },
+        {
+            "id": 2,
+            "name": "Stone",
+            "solid": true,
+            "transparent": false,
+            "color": [0.5, 0.5, 0.5, 1.0],
+            "textures": [3, 3, 3, 3, 3, 3],
+            "movement_cost": 1.5
+        },
+        {
+            "id": 3,
+            "name": "Grass",
+            "solid": true,
+            "transparent": false,
+            "color": [0.32, 0.51, 0.23, 1.0],
+            "textures": [0, 2, 1, 1, 1, 1],
+            "movement_cost": 1.0
+        }
+    ]
+}

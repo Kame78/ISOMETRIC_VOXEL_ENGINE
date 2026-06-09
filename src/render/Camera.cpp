@@ -38,7 +38,7 @@ void Camera::SetTarget(const glm::vec3& target) {
 }
 
 void Camera::AdjustZoom(float amount) {
-    m_zoom = std::clamp(m_zoom + amount, 0.1f, 10.0f);
+    m_zoom = std::clamp(m_zoom + amount, 0.1f, 30.0f);
     UpdateMatrices();
 }
 

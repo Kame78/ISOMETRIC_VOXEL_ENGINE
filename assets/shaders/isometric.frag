@@ -3,6 +3,7 @@ out vec4 FragColor;
 
 in vec2 TexCoords;
 in float LightingFactor;
+in vec4 FragColorValue;
 
 uniform sampler2D uTextureAtlas;
 uniform bool uUseTexture;
@@ -10,8 +11,10 @@ uniform bool uUseTexture;
 void main() {
     if (uUseTexture) {
         vec4 texColor = texture(uTextureAtlas, TexCoords);
-        FragColor = vec4(texColor.rgb * LightingFactor, texColor.a);
+        vec3 finalRGB = texColor.rgb * FragColorValue.rgb * LightingFactor;
+        FragColor = vec4(finalRGB, texColor.a * FragColorValue.a);
     } else {
-        FragColor = vec4(vec3(0.5, 0.5, 0.6) * LightingFactor, 1.0);
+        vec3 finalRGB = FragColorValue.rgb * LightingFactor;
+        FragColor = vec4(finalRGB, FragColorValue.a);
     }
 }

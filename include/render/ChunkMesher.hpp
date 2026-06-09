@@ -26,12 +26,12 @@ namespace Render {
                       const World::Chunk* back, 
                       const World::Chunk* front) noexcept;
 
-    static void AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z) noexcept;
-    static void AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int z) noexcept;
-    static void AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z) noexcept;
-    static void AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z) noexcept;
-    static void AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z) noexcept;
-    static void AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z) noexcept;
+    static void AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept;
+    static void AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept;
+    static void AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept;
+    static void AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept;
+    static void AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept;
+    static void AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z, World::BlockID id) noexcept;
 
     };
 }
