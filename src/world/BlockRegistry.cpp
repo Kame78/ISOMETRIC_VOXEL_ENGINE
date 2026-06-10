@@ -2,103 +2,95 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
-#include <vector>
+#include <algorithm>
+
 
 namespace World {
-std::array<BlockProperties, 4> BlockRegistry::m_registryTable;
 
-void BlockRegistry::Initialize() noexcept {
-     auto& air = m_registryTable[static_cast<size_t>(BlockID::AIR)];
-        air.name = "Air",
-        air.isSolid = false,
-        air.isTransparent = true,
-        air.color = glm::vec4(0.0f, 0.0f, 0.0f , 0.0f),
-        air.textureIndices = {0, 0, 0, 0, 0, 0,},
-        air.movementCost = 0.0f;
-    
-        std::ifstream file ("assets/data/blocks.json");
-        if(!file.is_open()) {
-            std::cerr << "CRITICAL ERROR: Failed to locate blocks.json !" << std::endl;
-            std::cerr << "Engine hardcoded fallbacks deployed." << std::endl;
-        
-            // === Hardcoded Fallbacks (Used if file loading fails) ===
-        
-            auto& dirt = m_registryTable[static_cast<size_t>(BlockID::DIRT)];
-            dirt.name           = "Dirt";
-            dirt.isSolid        = true;
-            dirt.isTransparent  = false;
-            dirt.color          = glm::vec4(0.45f, 0.34f, 0.22f, 1.0f);
-            dirt.textureIndices = {2, 2, 2, 2, 2, 2};
-            dirt.movementCost   = 1.0f;
+    BlockRegistryTable BlockOps::LoadRegistryFromFile(std::string_view jsonPath) noexcept {
+        BlockRegistryTable table;
 
-            auto& stone = m_registryTable[static_cast<size_t>(BlockID::STONE)];
-            stone.name           = "Stone";
-            stone.isSolid        = true;
-            stone.isTransparent  = false;
-            stone.color          = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
-            stone.textureIndices = {3, 3, 3, 3, 3, 3};
-            stone.movementCost   = 1.5f;
+        table.records.reserve(32);
+        table.coldNames.reserve(32);
 
-            auto& grass = m_registryTable[static_cast<size_t>(BlockID::GRASS)];
-            grass.name           = "Grass";
-            grass.isSolid        = true;
-            grass.isTransparent  = false;
-            grass.color          = glm::vec4(0.32f, 0.51f, 0.23f, 1.0f);
-            grass.textureIndices = {0, 2, 1, 1, 1, 1};
-            grass.movementCost   = 1.0f;
-        
-            return;
+        table.records.push_back(BlockProperties{
+            .movementCost = 0.0f,
+            .isSolid = false,
+            .isTransparent = true,
+            .textureIndices = {0, 0, 0, 0, 0, 0},
+            .color = glm::vec4(0.0f)
+        });
+        table.coldNames.emplace_back("engine:air", static_cast<VoxelTypeID>(0));
+        table.nameToIdMap.emplace("engine:air", static_cast<VoxelTypeID>(0));
+
+        std::ifstream file((std::string(jsonPath)));
+        if (!file.is_open()) {
+            std::cerr << "[-] Error: Failed to resolve registry asset route: " << jsonPath << "\n";
+            return table;
         }
 
-        try {
-            nlohmann::json data;
-            file >> data;
+        try{
+            nlohmann::json root;
+            file >> root;
 
-            if (!data.contains("blocks") || !data["blocks"].is_array()) {
-            std::cerr << "ERROR: 'blocks' array missing from JSON root node!" << std::endl;
-            return;
-        }
+            if (!root.contains("blocks") || !root["blocks"].is_array()) {
+                std::cerr<< "[-] Error: Target asset progile lacks structural block tracking arrays. \n";
+                return table;
+            }
 
-            for (const auto& item : data["blocks"]) {
+            for (const auto& item: root ["blocks"]) {
+                std::string stringId = item.value("string_id", "");
+                if (stringId.empty()) {
+                    std::cerr << "[!] Configuration Warning: Encountered anonymous block profile entry. Skipping line.\n";
+                    continue;
+            }
 
-                if (!item.contains("id")) {
-                std::cerr << "WARNING: Skipping a JSON block entry because it is missing an 'id' key!" << std::endl;
+            if (table.nameToIdMap.contains(stringId)) {
+                std::cerr << "[!] Configuration Warning: Duplicate namespace identifier detected: " << stringId << ". Skipping row.\n";
                 continue;
             }
 
-                size_t idIndex =item["id"].get<size_t>();
-                if (idIndex >= m_registryTable.size()) continue;
+            auto assignedId = static_cast<VoxelTypeID>(table.records.size());
 
-                auto& props = m_registryTable[idIndex];
+            BlockProperties props;
+            props.isSolid - item.value("solid", true); 
+            props.isTransparent = item.value("transparent", false);
+            props.movementCost = item.value("movement_cost", 1.0f);
 
-                props.name           = item.value("name", "Unknown Voxel");
-                props.isSolid        = item.value("solid", true);
-                props.isTransparent  = item.value("transparent", false);
-                props.movementCost   = item.value("movementCost", 1.0f);
-
-              if (item.contains("color") && item["color"].is_array()) {  
-                auto colorArray       = item["color"].get<std::vector<float>>();
-                if (colorArray.size() >= 4) {
-                props.color = glm::vec4(colorArray[0], colorArray[1], colorArray[2], colorArray[3]);   
-                }
-              } else {
-                props.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-              }           
-                if (item.contains("textures") && item["textures"].is_array()) {
-                    auto texArray = item["textures"].get<std::vector<int>>();
-                    if (texArray.size() >= 6) {
-                        for(size_t i = 0; i < 6; ++i) {
-                            props.textureIndices[i] = texArray[i];
-                        }
-                    }
+            if (item.contains("color") && item["color"].is_array()) {
+                auto colArray = item["color"].get<std::vector<float>>();
+                if(colArray.size() >=4) {
+                    props.color = glm::vec4(colArray[0], colArray[1], colArray[2], colArray[3]);
                 }
             }
-        }
+            if(item.contains("textures") && item["textures"].is_array()) {
+                auto texArray = item["textures"].get<std::vector<int>>();
+                for (size_t i = 0; i < std::min(size_t(6), texArray.size()); ++i){
+                    props.textureIndices[i] = texArray[i];
+                }
+            }
 
-        catch (const nlohmann::json::exception& e) {
-            std::cerr << "JSON Parser Exception: " << e.what() << std::endl;
-    
+            table.records.push_back(props);
+            table.coldNames.push_back(stringId);
+            table.nameToIdMap.insert_or_assign(std::move(stringId), assignedId);
         }
+        std::cout << "[+] System Registry loaded successfully. Total Active Voxel Profiles: " << table.records.size() << "\n";
+    } catch (const std::exception& e) {
+        std::cerr << "[-] Exception caught parsing registry sheet: " << e.what() << "\n";
     }
+    return table;
 }
+
+VoxelTypeID BlockOps::FindIdByString(const BlockRegistryTable& table, std::string_view internalName) noexcept {
+    auto it = table.nameToIdMap.find(internalName);
+
+    if(it != table.nameToIdMap.end()) {
+        return it->second;
+    }
+    std::cerr << "[!] Runtime Alert: Requested unmapped voxel lookup identity: " << internalName << ". Routing to Air handle fallback.\n";
+    return static_cast<VoxelTypeID>(0);
+}
+
+}
+
 
