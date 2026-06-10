@@ -79,10 +79,10 @@ int main() {
     std::cout << "WORLD PIPELINE INITIATED: Running Seed -> " << runtimeSeed << std::endl;
 
     World::World gameWorld;
-    gameWorld.GenerateDiorama(12, 12, runtimeSeed);
+    gameWorld.GenerateDiorama(12, 6, 12, runtimeSeed);
 
     // Dynamically shift camera destination vector to look at the map midpoint coordinates
-    float islandCenter = (12.0f * static_cast<float>(World::CHUNK_SIZE)) / 2.0f;
+    float islandCenter = (12.0f * static_cast<float>(World::CHUNK_SIZE) * 2.0f) / 2.0f;
     camera.SetTarget(glm::vec3(islandCenter, 16.0f, islandCenter));
 
     bool renderWireframe = false;
@@ -112,7 +112,7 @@ int main() {
         glViewport(0, 0, static_cast<GLsizei>(logicalWidth), static_cast<GLsizei>(logicalHeight));
 
         // SFML 3.0: Explicitly clear target FBO surface color to diagnostic Neon Crimson
-        gameRenderBuffer.clear(sf::Color(255, 0, 76)); 
+        gameRenderBuffer.clear(sf::Color(30, 33, 45)); 
 
         // Secure state attributes (forces drivers to respect 3D layouts over 2D leaks)
         glEnable(GL_DEPTH_TEST);

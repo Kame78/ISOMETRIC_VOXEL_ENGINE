@@ -8,10 +8,18 @@ bool ChunkMesher::IsAir(int x, int y, int z,
                       const World::Chunk* left, 
                       const World::Chunk* right, 
                       const World::Chunk* back, 
-                      const World::Chunk* front) noexcept
+                      const World::Chunk* front,
+                      const World::Chunk* bottom, 
+                      const World::Chunk* top ) noexcept
 {
 
-    if (y < 0 || y>= World::CHUNK_SIZE) return true;
+    if (y < 0) {
+        return bottom ? (bottom->GetBlock(x, World::CHUNK_SIZE - 1, z) == World::BlockID::AIR) : true;
+    }
+
+    if (y >= World::CHUNK_SIZE) {
+        return top ? (top->GetBlock(x, 0, z) == World::BlockID::AIR) : true;
+    }
 
     if (x < 0) {
         return left ? (left->GetBlock(World::CHUNK_SIZE - 1, y, z) == World::BlockID::AIR) : true; 
@@ -35,8 +43,9 @@ bool ChunkMesher::IsAir(int x, int y, int z,
 void ChunkMesher::BuildMesh(const World::Chunk& chunk,
                             Mesh& outMesh,
                             const World::Chunk* left,    const World::Chunk* right, 
-                            const World::Chunk* back,    const World::Chunk* front)
-{
+                            const World::Chunk* back,    const World::Chunk* front,
+                            const World::Chunk* bottom, const World::Chunk* top)             
+    {
     std::vector<Vertex> vertices;
     vertices.reserve(World::CHUNK_SIZE * World::CHUNK_SIZE * World::CHUNK_SIZE * 2);
 
@@ -47,24 +56,27 @@ void ChunkMesher::BuildMesh(const World::Chunk& chunk,
                 World::BlockID block = chunk.GetBlock(x, y, z);
                 if (block == World::BlockID::AIR) continue;
                 
-                if ( y == World::CHUNK_SIZE - 1 || chunk.GetBlock(x, y + 1, z) == World::BlockID::AIR) {
+                if ( y == World::CHUNK_SIZE - 1) {
+                    if (IsAir(x, y + 1, z, chunk, left, right, back, front, bottom, top)) AddTopFace(vertices, x, y, z, block);
+                } else if (chunk.GetBlock(x, y + 1, z) == World::BlockID::AIR) {
                     AddTopFace(vertices, x, y, z, block);
                 }
-
-                if( y == 0 || chunk.GetBlock(x, y - 1, z) == World::BlockID::AIR) {
+                if (y == 0){
+                    if (IsAir(x, y -1, z, chunk, left, right, back, front, bottom, top)) AddBottomFace(vertices, x, y, z, block);
+                } else if (chunk.GetBlock(x, y -1, z) == World::BlockID::AIR) {
                     AddBottomFace(vertices, x, y, z, block);
                 }
 
-                if (IsAir(x, y, z + 1, chunk, left, right, back, front)){
+                if (IsAir(x, y, z + 1, chunk, left, right, back, front, bottom, top)){
                     AddFrontFace(vertices, x, y, z, block);
                 }
-                if (IsAir(x, y, z - 1, chunk, left, right, back, front)){
+                if (IsAir(x, y, z - 1, chunk, left, right, back, front, bottom, top)){
                     AddBackFace(vertices, x, y, z, block);
                 }
-                if (IsAir(x - 1, y, z, chunk, left, right, back, front)){
+                if (IsAir(x - 1, y, z, chunk, left, right, back, front, bottom, top)){
                     AddLeftFace(vertices, x, y, z, block);
                 }
-                if (IsAir(x + 1, y, z, chunk, left, right, back, front)){
+                if (IsAir(x + 1, y, z, chunk, left, right, back, front, bottom, top)){
                     AddRightFace(vertices, x, y, z, block);
                 }    
             }

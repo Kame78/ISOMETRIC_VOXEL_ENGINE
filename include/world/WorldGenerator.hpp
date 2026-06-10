@@ -15,6 +15,6 @@ namespace World {
         WorldGenerator(WorldGenerator&&) = delete;
         WorldGenerator& operator=(WorldGenerator&&) noexcept = delete;
 
-        void GenerateChunk(Chunk& chunk, int chunkX, int chunkZ, float centerX, float centerZ, float radius, uint32_t seed) const noexcept;
+        void GenerateChunk(Chunk& chunk, int chunkX, int chunkY, int chunkZ, float centerX, float centerZ, float radius, uint32_t seed, int totalWorldHeight) const noexcept;
      };
  }

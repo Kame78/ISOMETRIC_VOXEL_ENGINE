@@ -86,13 +86,12 @@ float NoiseMath::CalculateRockDensity(float x, float z, uint32_t seed) noexcept 
     float seedOffset = static_cast<float>(seed * 73);
     return FractalNoise2D(x - 2400.0f + seedOffset, z - 2400.0f + seedOffset, 2, 0.012f, 0.5f);}
 
-int NoiseMath::QuantizeHeight(float rawNoise, int stepInterval) noexcept {
-    float positiveSignal = rawNoise * 11.5f;
-    int continuousVoxelY = static_cast<int>(positiveSignal) + 2;
+int NoiseMath::QuantizeHeight(float rawNoise, int stepInterval, int maxHeight) noexcept {
+    float positiveSignal = rawNoise * static_cast<float>(maxHeight);
 
-    int quantizedY = (continuousVoxelY / stepInterval) * stepInterval;
+    int continuousVoxelY = std::clamp(static_cast<int>(positiveSignal), 0, maxHeight - 1);
 
-    return quantizedY;
+    return (continuousVoxelY / stepInterval) * stepInterval;
 }
 
 } // namespace Math

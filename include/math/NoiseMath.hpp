@@ -15,6 +15,6 @@ namespace Math {
 
         [[nodiscard]] static float CalculateRockDensity(float x, float z, uint32_t seed) noexcept;
 
-        [[nodiscard]] static int QuantizeHeight(float rawNoise, int StepInterval) noexcept;
+        [[nodiscard]] static int QuantizeHeight(float rawNoise, int StepInterval, int maxHeight) noexcept;
     };
 }

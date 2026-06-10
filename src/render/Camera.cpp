@@ -50,7 +50,7 @@ void Camera::AdjustZoom(float amount) {
 void Camera::UpdateMatrices() {
     float extentY = 3.0f * m_zoom;
     float extentX = extentY * m_aspectRatio;
-    m_projectionMatrix = glm::ortho(-extentX, extentX, -extentY, extentY, -100.0f, 1000.0f);
+    m_projectionMatrix = glm::ortho(-extentX, extentX, -extentY, extentY, -1000.0f, 1000.0f);
 
     glm::mat4 isometricOrientation = glm::mat4(1.0f);
 

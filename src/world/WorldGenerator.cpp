@@ -5,7 +5,7 @@
 
 namespace World {
 
-void WorldGenerator::GenerateChunk(Chunk& chunk, int chunkX, int chunkZ, float centerX, float centerZ, float radius, uint32_t seed) const noexcept {
+void WorldGenerator::GenerateChunk(Chunk& chunk, int chunkX, int chunkY, int chunkZ, float centerX, float centerZ, float radius, uint32_t seed, int totalWorldHeight) const noexcept {
     int worldOffsetX = chunkX * CHUNK_SIZE;
     int worldOffsetZ = chunkZ * CHUNK_SIZE;
 
@@ -28,27 +28,31 @@ void WorldGenerator::GenerateChunk(Chunk& chunk, int chunkX, int chunkZ, float c
         }
 
         float rawNoise = Math::NoiseMath::CalculateHeightNoise(globalX, globalZ, centerX, centerZ, radius, seed);
-        int targetSurfaceY = Math::NoiseMath::QuantizeHeight(rawNoise, 3);
-        targetSurfaceY = std::clamp(targetSurfaceY, 0, CHUNK_SIZE - 1);
+       
+        int targetSurfaceY = Math::NoiseMath::QuantizeHeight(rawNoise, 3, totalWorldHeight);
 
-        for (int y = CHUNK_SIZE - 1; y >= 0; --y){
-            if(y > targetSurfaceY) {
+        for (int y = CHUNK_SIZE - 1; y >= 0; --y) {
+            // Compute exactly where this specific block sits globally in the vertical stack
+            int globalY = (chunkY * CHUNK_SIZE) + y;
+
+            if (globalY > targetSurfaceY) {
                 chunk.SetBlock(x, y, z, BlockID::AIR);
             }
-            else if (y == targetSurfaceY) {
+            else if (globalY == targetSurfaceY) {
                 chunk.SetBlock(x, y, z, BlockID::GRASS);
             }
-            else if (y < targetSurfaceY && y>= targetSurfaceY - 3) {
+            else if (globalY < targetSurfaceY && globalY >= targetSurfaceY - 3) {
                 chunk.SetBlock(x, y, z, BlockID::DIRT);
             }
-            else if (y < targetSurfaceY - 3 && y>= targetSurfaceY - 6) {
+            else if (globalY < targetSurfaceY - 3) {
+                // Solid core foundation filling down through underlying chunk segments
                 chunk.SetBlock(x, y, z, BlockID::STONE);
             }
-            else {
+            else [[unlikely]] {
                 chunk.SetBlock(x, y, z, BlockID::AIR);
             }
         }
     }
 }
 
-}
+} // namespace World

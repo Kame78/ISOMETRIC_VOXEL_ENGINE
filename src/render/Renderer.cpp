@@ -2,7 +2,7 @@
 
 void Renderer::BeginFrame() const noexcept {
 
-    glClearColor(1.0f, 0.0f, 0.3f, 1.0f);
+    glClearColor(0.12f, 0.13f, 0.18f, 1.0f);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
