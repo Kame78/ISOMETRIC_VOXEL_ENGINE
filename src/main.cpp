@@ -1,3 +1,4 @@
+#include <glad/glad.h> // 🔑 FIXED: Placed at the absolute top of the file to satisfy GLAD include constraints
 #include <iostream>
 #include <vector>
 #include <glm/glm.hpp>
@@ -20,35 +21,31 @@
 #include "world/World.hpp"
 
 int main() {
-
-    // === 1. ENGINE INFRASTRUCTURE INITIALIZATION ===
-
     Window window;
     if (!window.Create(1920, 1080, "Production Architecture Voxel Workspace")) {
         std::cerr << "CRITICAL: Failed to construct primary window layer!" << std::endl;
         return -1;
     }
 
-    const unsigned int logicalWidth  = 960;
-    const unsigned int logicalHeight = 540;
+    const unsigned int logicalWidth  = 1920;
+    const unsigned int logicalHeight = 1080;
 
     sf::ContextSettings textureSettings;
-    textureSettings.depthBits = 24;
+    textureSettings.depthBits = 24; 
 
     sf::RenderTexture gameRenderBuffer({logicalWidth, logicalHeight}, textureSettings);
-    gameRenderBuffer.setSmooth(false); // Sharp, crisp nearest-neighbor block edges
+    gameRenderBuffer.setSmooth(false); 
 
+    // --- SFML 3 HIGH-PERFORMANCE UPSCALE CONTEXT ALIGNMENT ---
     sf::Sprite upscaleSprite(gameRenderBuffer.getTexture());
-    upscaleSprite.setScale({
+    upscaleSprite.setScale(sf::Vector2f(
         1920.0f / static_cast<float>(logicalWidth),
-        1080.0f / static_cast<float>(logicalHeight)
-    });
-    upscaleSprite.setOrigin({0.0f, 0.0f});
-    upscaleSprite.setPosition({0.0f, 0.0f});
+        -1080.0f / static_cast<float>(logicalHeight)
+    ));
+    upscaleSprite.setOrigin(sf::Vector2f(0.0f, static_cast<float>(logicalHeight)));
+    upscaleSprite.setPosition(sf::Vector2f(0.0f, 0.0f));
 
-    (void)gameRenderBuffer.setActive(true);
-
-    auto blockRegistry = World::BlockOps::LoadRegistryFromFile("assets/block_registry.json");
+    auto blockRegistry = World::BlockOps::LoadRegistryFromFile("assets/data/blocks.json");
 
     Renderer renderer;
     Render::ChunkRenderer chunkRenderer;
@@ -65,92 +62,106 @@ int main() {
     std::cout << "WORLD PIPELINE INITIATED: Running Seed -> " << runtimeSeed << std::endl;
 
     World::World gameWorld;
-    gameWorld.GenerateDiorama(12, 6, 12, runtimeSeed, blockRegistry);
+    gameWorld.GenerateDiorama(6, 3, 6, runtimeSeed, blockRegistry);
 
-    float islandCenter = (12.0f * static_cast<float>(World::CHUNK_SIZE) * 2.0f) / 2.0f;
+    float islandCenter = (6.0f * static_cast<float>(World::CHUNK_SIZE) * 2.0f) / 2.0f;
     camera.SetTarget(glm::vec3(islandCenter, 16.0f, islandCenter));
 
     bool renderWireframe = false;
 
-   while (window.IsOpen()) {
-    Input::UpdateStates();
-    window.ProcessFrame();
+    // 🔑 FIXED: Removed problematic glGetIntegerv block to ensure zero-fault compilation across platforms
+    static bool useCulling = true;
+    static bool useCCW     = true;
 
-    if (Input::IsKeyHeld(sf::Keyboard::Key::Escape)) {
-        window.Close();
-    }
-    if (Input::IsKeyDown(sf::Keyboard::Key::Space)) {
-        renderWireframe = !renderWireframe;
-    }
-
-    camera.ProcessInput();
-    
-    // --- STEP 1: BIND OFFSCREEN BUFFER & SETUP PURE OPENGL STATE ---
-    if (!gameRenderBuffer.setActive(true)) [[unlikely]] {
-        std::cerr << "[-] Error: Failed to secure offscreen target handle focus\n";
-        continue;
-    }
-    
-    glViewport(0, 0, static_cast<GLsizei>(logicalWidth), static_cast<GLsizei>(logicalHeight));
-
-    // FIX: Use native hardware clear calls instead of sf::RenderTexture::clear()
-    // This prevents SFML's 2D context from silently overriding your depth test states
-    glClearColor(0.117f, 0.129f, 0.176f, 1.0f); // Matching sf::Color(30, 33, 45) in normalized floats
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Enforce clear, unambiguous 3D rendering states
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE); 
-    glDepthFunc(GL_LESS);
-    glDisable(GL_BLEND); // Turn off alpha blending during opaque voxel passes to guarantee depth writes
-
-    if (renderWireframe) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    } else {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    // --- STEP 2: EXECUTE VOLUMETRIC GEOMETRY GENERATION AND DRAWS ---
     gameWorld.RebuildDirtyMeshes();
 
-    renderer.BeginFrame(); 
+    while (window.IsOpen()) {
+        Input::UpdateStates();
+        window.ProcessFrame();
 
-    // Render the chunk buffers into the active, cleared offscreen texture context
-    chunkRenderer.Render(gameWorld.GetRenderStates(), gameWorld.GetChunkPositions(), isoShader, camera);        
-    
-    // Finalize 3D rendering pass commands inside the texture target bounds
-    gameRenderBuffer.display();
+        if (Input::IsKeyHeld(sf::Keyboard::Key::Escape)) {
+            window.Close();
+        }
+        if (Input::IsKeyDown(sf::Keyboard::Key::Space)) {
+            renderWireframe = !renderWireframe;
+        }
 
-    // --- STEP 3: SWITCH CONTEXT TO THE PRIMARY WINDOW DEVICE ---
-    if (!window.GetSFMLWindow().setActive(true)) [[unlikely]] {
-        continue;
+        // ========================================================
+        // LIVE RUNTIME DIAGNOSTIC KEYS (Use these to test inside-out behavior)
+        // ========================================================
+        if (Input::IsKeyDown(sf::Keyboard::Key::C)) {
+            useCulling = !useCulling;
+            std::cout << "[DIAGNOSTIC] Backface Culling toggled to: " << (useCulling ? "ENABLED" : "DISABLED") << "\n";
+        }
+        if (Input::IsKeyDown(sf::Keyboard::Key::V)) {
+            useCCW = !useCCW;
+            std::cout << "[DIAGNOSTIC] Winding Direction toggled to: " << (useCCW ? "GL_CCW (Standard)" : "GL_CW (Inverted)") << "\n";
+        }
+        // ========================================================
+
+        camera.ProcessInput();
+        
+        // --- STEP 1: BIND OFFSCREEN BUFFER & SETUP PURE OPENGL STATE ---
+        if (!gameRenderBuffer.setActive(true)) [[unlikely]] {
+            std::cerr << "[-] Error: Failed to secure offscreen target handle focus\n";
+            continue;
+        }
+        
+        glViewport(0, 0, static_cast<GLsizei>(logicalWidth), static_cast<GLsizei>(logicalHeight));
+        glClearColor(0.117f, 0.129f, 0.176f, 1.0f); 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE); 
+        glDepthFunc(GL_LESS);
+        glDisable(GL_BLEND); 
+
+        // Bind dynamic runtime live diagnostics
+        if (useCulling) {
+            glEnable(GL_CULL_FACE);
+        } else {
+            glDisable(GL_CULL_FACE);
+        }
+        
+        if (useCCW) {
+            glFrontFace(GL_CCW);
+        } else {
+            glFrontFace(GL_CW); 
+        }
+        glCullFace(GL_BACK);
+
+        if (renderWireframe) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        } else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
+        // --- STEP 2: EXECUTE VOLUMETRIC GEOMETRY GENERATION AND DRAWS ---
+        renderer.BeginFrame(); 
+        chunkRenderer.Render(gameWorld.GetRenderStates(), gameWorld.GetChunkPositions(), isoShader, camera);        
+        gameRenderBuffer.display();
+
+        // --- STEP 3: SWITCH CONTEXT TO THE PRIMARY WINDOW DEVICE ---
+        if (!window.GetSFMLWindow().setActive(true)) [[unlikely]] {
+            continue;
+        }
+        
+        glViewport(0, 0, 1920, 1080);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glUseProgram(0);                  
+        glBindVertexArray(0);             
+        glBindBuffer(GL_ARRAY_BUFFER, 0); 
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); 
+
+        // --- STEP 4: UPSCALE CANVAS BLIT PASS WITH SFML 3 API ---
+        window.GetSFMLWindow().pushGLStates();
+        window.GetSFMLWindow().draw(upscaleSprite); 
+        window.GetSFMLWindow().popGLStates();
+        
+        window.Display();
     }
-    
-    glViewport(0, 0, 1920, 1080);
-    
-    // Clear the main hardware viewport back buffer cleanly
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    // Reset state indicators to guarantee old loops don't leak shader logic pathways
-    glUseProgram(0);                  
-    glBindVertexArray(0);             
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Always draw the upscaled quad filled
-
-    // --- STEP 4: UPSCALE DRAW PASS WITH SAFE STATE PRESERVATION ---
-    // Protect the 3D state footprint by wrapping SFML's 2D draw operations cleanly
-    window.GetSFMLWindow().pushGLStates();
-    
-    // Force texture coordinates adjustment or mapping adjustments if things are flipped vertically
-    // If the image appears upside down, write: upscaleSprite.setScale({1.0f, -1.0f}); or handle here
-    window.GetSFMLWindow().draw(upscaleSprite); 
-    
-    window.GetSFMLWindow().popGLStates();
-    
-    // Swap front and back hardware displays cleanly
-    window.Display();
-}
 
     return 0;
 }

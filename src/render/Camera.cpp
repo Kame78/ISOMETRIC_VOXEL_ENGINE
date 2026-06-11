@@ -1,13 +1,12 @@
-#include "../../include/render//Camera.hpp"
+#include "../../include/render/Camera.hpp"
 #include "../../include/core/Input.hpp"
-#include<glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
 Camera::Camera(float width, float height) 
     : m_target(96.f, 10.f, 96.f),
     m_zoom(15.f),
     m_aspectRatio(1.7777f)
-
 {
     UpdateViewport(width, height);
 }
@@ -20,12 +19,13 @@ void Camera::UpdateViewport(float width, float height) {
 }
 
 void Camera::ProcessInput() noexcept {
-    float camSpeed = 0.08f;
+    // Re-tuned speed constants to keep movement smooth across lookAt vectors
+    float camSpeed = 0.55f; 
     float zoomSpeed = 0.04f;
 
-    if (Input::IsKeyHeld(sf::Keyboard::Key::A)) Move(glm::vec3(-camSpeed, 0.0f, -camSpeed));
-    if (Input::IsKeyHeld(sf::Keyboard::Key::D)) Move(glm::vec3(camSpeed, 0.0f, camSpeed));
-    if (Input::IsKeyHeld(sf::Keyboard::Key::S)) Move(glm::vec3(-camSpeed, 0.0f, camSpeed));
+    if (Input::IsKeyHeld(sf::Keyboard::Key::A)) Move(glm::vec3(-camSpeed, 0.0f, camSpeed));
+    if (Input::IsKeyHeld(sf::Keyboard::Key::D)) Move(glm::vec3(camSpeed, 0.0f, -camSpeed));
+    if (Input::IsKeyHeld(sf::Keyboard::Key::S)) Move(glm::vec3(camSpeed, 0.0f, camSpeed));
     if (Input::IsKeyHeld(sf::Keyboard::Key::W)) Move(glm::vec3(camSpeed, 0.0f, -camSpeed));
 
     if(Input::IsKeyHeld(sf::Keyboard::Key::Up)) AdjustZoom(zoomSpeed);
@@ -48,19 +48,19 @@ void Camera::AdjustZoom(float amount) {
 }
 
 void Camera::UpdateMatrices() {
+    // 1. Set up a clean orthographic viewing bounding box
     float extentY = 3.0f * m_zoom;
     float extentX = extentY * m_aspectRatio;
-    m_projectionMatrix = glm::ortho(-extentX, extentX, -extentY, extentY, -1000.0f, 1000.0f);
+    
+    // We set clipping planes from 0.1f to 2000.f now that lookAt handles positioning
+    m_projectionMatrix = glm::ortho(-extentX, extentX, -extentY, extentY, 0.1f, 2000.0f);
 
-    glm::mat4 isometricOrientation = glm::mat4(1.0f);
+    // 2. 🔑 FIXED: Position the camera along a physical 3D offset vector.
+    // Offsetting by equal parts X and Z gives an exact 45-degree isometric corner horizon angle.
+    float camDistance = 500.0f; 
+    glm::vec3 cameraPosition = m_target + glm::vec3(camDistance, camDistance * 0.8164f, camDistance);
 
-    isometricOrientation = glm::scale(isometricOrientation, glm::vec3(1.0f, 0.75f, 1.0f));
-
-    isometricOrientation = glm::rotate(isometricOrientation, glm::radians(35.264f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-    isometricOrientation = glm::rotate(isometricOrientation, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    glm::mat4 translation = glm::translate(glm::mat4(1.0f), -m_target);
-
-    m_viewMatrix = isometricOrientation * translation;
+    // 3. 🔑 FIXED: Using lookAt automatically creates native, right-handed depth sorting.
+    // This stops background blocks from drawing over the foreground, eliminating the inside-out bug.
+    m_viewMatrix = glm::lookAt(cameraPosition, m_target, glm::vec3(0.0f, 1.0f, 0.0f));
 }

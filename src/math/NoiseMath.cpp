@@ -1,11 +1,21 @@
 #include "../../include/math/NoiseMath.hpp"
 #include <cmath>
 #include <algorithm>
+#include <cstdint> // Required for clean uint32_t definitions
 
+// === FIXED: Uses uint32_t to eliminate Undefined Behavior from Signed Overflow ===
 static float Hash2D(int x, int z) noexcept {
-    int n = x + z * 57;
+    // Cast to unsigned immediately to enforce deterministic modulo wrapping
+    uint32_t ux = static_cast<uint32_t>(x);
+    uint32_t uz = static_cast<uint32_t>(z);
+
+    uint32_t n = ux + uz * 57u;
     n = (n << 13) ^ n;
-    int hashed = (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff;
+    
+    // Perform the chaotic mixing math safely using unsigned attributes
+    uint32_t hashed = (n * (n * n * 15731u + 789221u) + 1376312589u) & 0x7fffffffu;
+    
+    // Scale cleanly back into a symmetric floating point range of [-1.0f, 1.0f]
     return 1.0f - (static_cast<float>(hashed) / 1073741824.0f);
 }
 
@@ -40,7 +50,7 @@ static float FractalNoise2D(float x, float z, int octaves, float baseFrequency, 
         total += SmoothNoise2D(x * frequency, z * frequency) * amplitude;
         maxValue += amplitude;
 
-       amplitude *= persistence;  
+        amplitude *= persistence;  
         frequency *= 2.0f;
     }
     return total / maxValue;
@@ -60,7 +70,6 @@ float NoiseMath::CalculateBoundaryNoise(float x, float z, float centerX, float c
     float boundaryMask = (1.0f - normalizedDist * 1.2f) + (rawNoise * 0.35f);
 
     return boundaryMask;
-
 }
 
 float NoiseMath::CalculateHeightNoise(float x, float z, float centerX, float centerZ, float maxRadius, uint32_t seed) noexcept {
@@ -84,7 +93,8 @@ float NoiseMath::CalculateHeightNoise(float x, float z, float centerX, float cen
 
 float NoiseMath::CalculateRockDensity(float x, float z, uint32_t seed) noexcept {
     float seedOffset = static_cast<float>(seed * 73);
-    return FractalNoise2D(x - 2400.0f + seedOffset, z - 2400.0f + seedOffset, 2, 0.012f, 0.5f);}
+    return FractalNoise2D(x - 2400.0f + seedOffset, z - 2400.0f + seedOffset, 2, 0.012f, 0.5f);
+}
 
 int NoiseMath::QuantizeHeight(float rawNoise, int stepInterval, int maxHeight) noexcept {
     float positiveSignal = rawNoise * static_cast<float>(maxHeight);

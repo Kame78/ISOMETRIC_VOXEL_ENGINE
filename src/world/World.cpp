@@ -1,16 +1,19 @@
 #include "../../include/world/World.hpp"
 #include "../../include/world/WorldGenerator.hpp"
 #include <algorithm>
+#include <iostream>
 
 namespace World {
 
     void World::GenerateDiorama(int widthChunks, int heightChunks, int depthChunks, uint32_t seed, const BlockRegistryTable& registry) noexcept {
+        m_registryReference = &registry;
+        
         m_widthChunks = widthChunks;
         m_heightChunks = heightChunks;
         m_depthChunks = depthChunks;
 
         WorldGenerator generator;
-        int totalChunks = m_widthChunks * m_heightChunks * m_depthChunks;
+        size_t totalChunks = static_cast<size_t>(widthChunks) * static_cast<size_t>(heightChunks) * static_cast<size_t>(depthChunks);
 
         m_chunks.clear();
         m_renderStates.clear();
@@ -18,10 +21,10 @@ namespace World {
         m_dirtyFlags.clear();
 
 
-        m_chunks.resize(totalChunks);
+        m_chunks.assign(totalChunks, Chunk());
         m_renderStates.resize(totalChunks);
         m_worldPositions.resize(totalChunks);
-        m_dirtyFlags.resize(totalChunks, 1);
+        m_dirtyFlags.assign(totalChunks, 1);
 
         const float totalWidthWorld = static_cast<float>(m_widthChunks * CHUNK_SIZE) * 2.0f;
         const float totalDepthWorld = static_cast<float>(m_depthChunks * CHUNK_SIZE) * 2.0f;
@@ -42,9 +45,9 @@ namespace World {
                     const size_t index = GetChunkIndex(cx, cy, cz);
 
                     m_worldPositions[index] = glm::vec3(
-                        static_cast<float>(cx * CHUNK_SIZE) * 2.0f,
-                        static_cast<float>(cy * CHUNK_SIZE) * 1.0f,
-                        static_cast<float>(cz * CHUNK_SIZE) * 2.0f
+                       static_cast<float>(cx) * 32.0f,
+                        static_cast<float>(cy) * 16.0f,
+                        static_cast<float>(cz) * 32.0f
                     );
 
                     // Pass chunkY down so the generation logic tracks its stack height
@@ -74,6 +77,12 @@ namespace World {
 void World::RebuildDirtyMeshes() noexcept {
     if (m_chunks.empty()) return;
 
+    std::cout << "[DEBUG] Starting mesh rebuild..." << std::endl;
+
+
+
+    
+
     for (int cy = 0; cy < m_heightChunks; ++cy) {
         for (int cz = 0; cz < m_depthChunks; ++cz) {
             for (int cx = 0; cx < m_widthChunks; ++cx) {
@@ -82,6 +91,8 @@ void World::RebuildDirtyMeshes() noexcept {
                 if (m_dirtyFlags[index] == 0) [[likely]] {
                     continue;
                 }
+
+                std::cout << "[DEBUG] Building mesh for chunk at index: " << index << std::endl;
 
                 const Chunk* left   = GetChunkAt(cx - 1, cy, cz);
                 const Chunk* right  = GetChunkAt(cx + 1, cy, cz);
@@ -98,6 +109,10 @@ void World::RebuildDirtyMeshes() noexcept {
                 );
                
                  m_dirtyFlags[index] = 0;
+
+                 std::cout << "[DEBUG] Chunk " << index << " marked clean." << std::endl;
+
+                 
             }
         }
     }
