@@ -60,24 +60,25 @@ namespace Math {
 
 float NoiseMath::CalculateBoundaryNoise(float x, float z, float centerX, float centerZ, float maxRadius, uint32_t seed) noexcept {
     float seedOffset = static_cast<float>(seed * 17);
-    float rawNoise = FractalNoise2D(x + 1200.0f + seedOffset, z + 1200.0f + seedOffset, 3, 0.035f, 0.50f);
+    float rawNoise = FractalNoise2D(x + 1200.0f + seedOffset, z + 1200.0f + seedOffset, 3, 0.014f, 0.42f);
 
     float dx = x - centerX;
     float dz = z - centerZ;
     float distance = std::sqrt(dx * dx + dz * dz);
     float normalizedDist = distance / maxRadius;
 
-    float boundaryMask = (1.0f - normalizedDist * 1.2f) + (rawNoise * 0.35f);
+    float islandShape = 1.0f - (normalizedDist * normalizedDist * 1.1f);
+    float boundaryMask = islandShape + (rawNoise * 0.20f);
 
     return boundaryMask;
 }
 
 float NoiseMath::CalculateHeightNoise(float x, float z, float centerX, float centerZ, float maxRadius, uint32_t seed) noexcept {
     float seedOffset = static_cast<float>(seed * 17);
-    float rawNoise = FractalNoise2D(x + seedOffset, z + seedOffset, 4, 0.025f, 0.44f);    
+    float rawNoise = FractalNoise2D(x + seedOffset, z + seedOffset, 4, 0.012f, 0.35f);    
 
-    float warpedX = x + (rawNoise * 8.0f);
-    float warpedZ = z + (rawNoise * 8.0f);
+    float warpedX = x + (rawNoise * 6.0f);
+    float warpedZ = z + (rawNoise * 6.0f);
 
     float dx = warpedX - centerX;
     float dz = warpedZ - centerZ;
@@ -85,10 +86,13 @@ float NoiseMath::CalculateHeightNoise(float x, float z, float centerX, float cen
     float distance = std::sqrt(dx * dx + dz * dz);
     float normalizedDist = distance / maxRadius;
 
-    float centerHeightBias = 1.0f - (normalizedDist * normalizedDist);
-    centerHeightBias = std::clamp(centerHeightBias, 0.0f, 1.0f);
+    float boundaryNoise= 1.0f - (normalizedDist * normalizedDist) + (rawNoise * 0.35f);
+    
+    float heightScale = (boundaryNoise - 0.2f) / 0.8f;
+    heightScale = std::clamp(heightScale, 0.0f, 1.0f);
 
-    return (centerHeightBias * 0.60f) + ((rawNoise + 1.0f) * 0.5f * 0.40f);
+    float curvedBias = std::pow(heightScale, 1.5f);
+    return curvedBias * (0.65f + (rawNoise * 1.0f) * 0.5f * 0.35f);
 }
 
 float NoiseMath::CalculateRockDensity(float x, float z, uint32_t seed) noexcept {

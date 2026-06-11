@@ -28,7 +28,6 @@ namespace World {
         const StrataLayerPalette& layers) const noexcept 
     {
         const int worldOffsetX = chunkX * static_cast<int>(CHUNK_SIZE);
-        const int worldOffsetY = chunkY * static_cast<int>(CHUNK_SIZE);
         const int worldOffsetZ = chunkZ * static_cast<int>(CHUNK_SIZE);
 
         auto voxelView = chunk.AsMdspan();
@@ -52,7 +51,7 @@ namespace World {
                     }
 
                     const float rawNoise = Math::NoiseMath::CalculateHeightNoise(globalX, globalZ, centerX, centerZ, radius, seed);
-                    const int targetSurfaceY = Math::NoiseMath::QuantizeHeight(rawNoise, 3, totalWorldHeight);
+                    const int targetSurfaceY = Math::NoiseMath::QuantizeHeight(rawNoise, 1, totalWorldHeight);
 
                     if (globalY > targetSurfaceY) [[likely]] {
                         voxelView[x, y, z] = layers.airID;

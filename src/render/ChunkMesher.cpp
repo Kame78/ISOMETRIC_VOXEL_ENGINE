@@ -73,98 +73,90 @@ void ChunkMesher::AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z,
     glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(0.0f, 1.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
-    float padding = 1.001f;
     
-    // Triangle 1
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z+1.f}, norm, {0.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    // Triangle 2
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z-1.f}, norm, {1.f, 0.f}, col});
+    // Horizontal plane at Y = +0.5
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
+    
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
 }
 
 void ChunkMesher::AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(0.0f, -1.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
+
+    // Horizontal plane at Y = -0.5
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
     
-
-    // Triangle 1
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z+1.f}, norm, {0.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    // Triangle 2
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z-1.f}, norm, {1.f, 0.f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
 }
-
 
 void ChunkMesher::AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(0.0f, 0.0f, 1.0f);
     glm::vec4 col = registry.colors[id];
+
+    // Vertical wall at Z = +1.0
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
     
-
-   // Triangle 1
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z+1.f}, norm, {0.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    // Triangle 2
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z-1.f}, norm, {1.f, 0.f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
 }
-
 
 void ChunkMesher::AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(0.0f, 0.0f, -1.0f);
     glm::vec4 col = registry.colors[id];
-    
 
-     // Triangle 1
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z+1.f}, norm, {0.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    // Triangle 2
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z-1.f}, norm, {1.f, 0.f}, col});
+    // Vertical wall at Z = -1.0
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
+    
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
 }
 
 void ChunkMesher::AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(-1.0f, 0.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
-    
 
-     // Triangle 1
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z+1.f}, norm, {0.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    // Triangle 2
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z-1.f}, norm, {1.f, 0.f}, col});
+    // Vertical wall at X = -1.0
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    
+    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
 }
 
 void ChunkMesher::AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
     glm::vec3 norm(1.0f, 0.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
-    
 
-     // Triangle 1
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z+1.f}, norm, {0.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    // Triangle 2
-    vertices.push_back({{pos.x-1.f, pos.y+0.5f, pos.z-1.f}, norm, {0.f, 0.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z+1.f}, norm, {1.f, 1.f}, col});
-    vertices.push_back({{pos.x+1.f, pos.y+0.5f, pos.z-1.f}, norm, {1.f, 0.f}, col});
+    // Vertical wall at X = +1.0
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
+    
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
 }
 
 } // namespace Render

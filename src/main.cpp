@@ -1,4 +1,4 @@
-#include <glad/glad.h> // 🔑 FIXED: Placed at the absolute top of the file to satisfy GLAD include constraints
+#include <glad/glad.h> // 🔑 GLAD must be included before any other graphics headers
 #include <iostream>
 #include <vector>
 #include <glm/glm.hpp>
@@ -38,10 +38,6 @@ int main() {
 
     // --- SFML 3 HIGH-PERFORMANCE UPSCALE CONTEXT ALIGNMENT ---
     sf::Sprite upscaleSprite(gameRenderBuffer.getTexture());
-    upscaleSprite.setScale(sf::Vector2f(
-        1920.f / static_cast<float>(logicalWidth),
-        1080.f / static_cast<float>(logicalHeight)
-    ));
     upscaleSprite.setOrigin(sf::Vector2f(0.0f, 0.0f));
     upscaleSprite.setPosition(sf::Vector2f(0.0f, 0.0f));
 
@@ -62,14 +58,14 @@ int main() {
     std::cout << "WORLD PIPELINE INITIATED: Running Seed -> " << runtimeSeed << std::endl;
 
     World::World gameWorld;
-    gameWorld.GenerateDiorama(6, 3, 6, runtimeSeed, blockRegistry);
+    gameWorld.GenerateDiorama(25, 5, 25, runtimeSeed, blockRegistry);
 
     float islandCenter = (6.0f * static_cast<float>(World::CHUNK_SIZE) * 2.0f) / 2.0f;
     camera.SetTarget(glm::vec3(islandCenter, 16.0f, islandCenter));
 
     bool renderWireframe = false;
 
-    // 🔑 FIXED: Removed problematic glGetIntegerv block to ensure zero-fault compilation across platforms
+    // 🔑 FIXED: Restored your clean bool configuration back to true by default to enable CCW
     static bool useCulling = true;
     static bool useCCW     = true;
 
@@ -116,7 +112,7 @@ int main() {
         glDepthFunc(GL_LESS);
         glDisable(GL_BLEND); 
 
-        // Bind dynamic runtime live diagnostics
+        // Bind dynamic runtime live diagnostics using boolean states
         if (useCulling) {
             glEnable(GL_CULL_FACE);
         } else {
@@ -146,7 +142,10 @@ int main() {
             continue;
         }
         
-        glViewport(0, 0, 1920, 1080);
+        // 🔑 FIXED: Dynamically capture the true window frame bounds to erase the 2-inch cutoff bar
+        sf::Vector2u currentWindowSize = window.GetSFMLWindow().getSize();
+        glViewport(0, 0, static_cast<GLsizei>(currentWindowSize.x), static_cast<GLsizei>(currentWindowSize.y));
+        
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -154,6 +153,12 @@ int main() {
         glBindVertexArray(0);             
         glBindBuffer(GL_ARRAY_BUFFER, 0); 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); 
+
+        // Update upscale matrix scaling ratios dynamically to match window coordinates
+        upscaleSprite.setScale(sf::Vector2f(
+            static_cast<float>(currentWindowSize.x) / static_cast<float>(logicalWidth),
+            static_cast<float>(currentWindowSize.y) / static_cast<float>(logicalHeight)
+        ));
 
         // --- STEP 4: UPSCALE CANVAS BLIT PASS WITH SFML 3 API ---
         window.GetSFMLWindow().pushGLStates();
