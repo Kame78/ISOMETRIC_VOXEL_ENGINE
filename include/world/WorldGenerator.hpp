@@ -21,15 +21,7 @@ namespace World {
         WorldGenerator(const WorldGenerator&) = delete;
         WorldGenerator& operator=(const WorldGenerator&) = delete;
 
-        [[nodiscard]] static StrataLayerPalette CompileDynamicPalette( const BlockRegistryTable& registry) noexcept{
-            return StrataLayerPalette{
-                .airID = 0,
-                .surfaceID = BlockOps::FindIdByString(registry, "surface"),
-                .subsurfaceID = BlockOps::FindIdByString(registry, "subsurface"),
-                .baseID = BlockOps::FindIdByString(registry, "base")
-            
-            };
-        }
+        [[nodiscard]] static StrataLayerPalette CompileDynamicPalette( const BlockRegistryTable& registry) noexcept;
         
         void GenerateChunk(
             Chunk& chunk, 

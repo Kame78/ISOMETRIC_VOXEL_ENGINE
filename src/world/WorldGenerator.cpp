@@ -5,17 +5,12 @@
 
 namespace World {
 
-    StrataLayerPalette WorldGenerator::DeriveBiomePallete(
-        const BlockRegistryTable& registry,
-        std::string_view surfaceName,
-        std::string_view subsurfaceName,
-        std::string_view baseName) noexcept {
-
+    StrataLayerPalette WorldGenerator::CompileDynamicPalette(const BlockRegistryTable& registry) noexcept {
         return StrataLayerPalette{
-            .airID = 0,
-            .surfaceID = BlockOps::FindIdByString(registry, surfaceName),
-            .subsurfaceID = BlockOps::FindIdByString(registry, subsurfaceName),
-            .baseID = BlockOps::FindIdByString(registry, baseName)
+            .airID        = 0, // 0 is explicitly reserved for engine air spaces
+            .surfaceID    = BlockOps::FindIdByGenerationLayer(registry, "surface"),
+            .subsurfaceID = BlockOps::FindIdByGenerationLayer(registry, "subsurface"),
+            .baseID       = BlockOps::FindIdByGenerationLayer(registry, "base")
         };
     }
 
@@ -55,24 +50,24 @@ namespace World {
                 const float rawNoise = Math::NoiseMath::CalculateHeightNoise(globalX, globalZ, centerX, centerZ, radius, seed);
                 const int targetSurfaceY = Math::NoiseMath::QuantizeHeight(rawNoise, 3, totalWorldHeight);
 
-                for (int y = 0; y < CHUNK_SIZE; ++y) {
+                for (size_t y = 0; y < CHUNK_SIZE; ++y) {
                     const int globalY = (chunkY * static_cast<int>(CHUNK_SIZE)) + static_cast<int>(y);
 
-                if (globalY > targetSurfaceY) [[likely]]{
-                    voxelView[x, y, z] = layers.airID;
-                }
-                else if (globalY == targetSurfaceY) {
-                    voxelView[x, y, z] = layers.surfaceID;
-                }
-                else if (globalY < targetSurfaceY && globalY >= targetSurfaceY - 3) {
-                    voxelView[x, y, z] = layers.subsurfaceID;
-                }
-                else  {
-                    voxelView[x, y, z] = layers.baseID;
+                    if (globalY > targetSurfaceY) [[likely]]{
+                        voxelView[x, y, z] = layers.airID;
+                     }
+                    else if (globalY == targetSurfaceY) {
+                        voxelView[x, y, z] = layers.surfaceID;
+                    }
+                    else if (globalY < targetSurfaceY && globalY >= targetSurfaceY - 3) {
+                        voxelView[x, y, z] = layers.subsurfaceID;
+                    }
+                    else  {
+                        voxelView[x, y, z] = layers.baseID;
+                    }
                 }
             }
         }
     }
-}
 
 } // namespace World

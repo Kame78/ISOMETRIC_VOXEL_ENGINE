@@ -45,7 +45,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/world/BlockRegistry.cpp
     src/math/NoiseMath.cpp
     src/world/WorldGenerator.cpp
-    src/world/FeatureDecorator.cpp
     src/world/World.cpp
 )
 

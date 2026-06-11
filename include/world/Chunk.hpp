@@ -13,9 +13,6 @@ namespace World {
     struct Chunk{
         std::array<VoxelTypeID, CHUNK_VOLUME> blocks{};
 
-        glm::vec3 worldPosition{0.0f};
-        bool isDirty{true};
-
         [[nodiscard]] constexpr inline VoxelTypeID GetBlock(int x, int y, int z) const noexcept {
           return blocks[z + (y * CHUNK_SIZE) + (x * CHUNK_SIZE * CHUNK_SIZE)];
     }

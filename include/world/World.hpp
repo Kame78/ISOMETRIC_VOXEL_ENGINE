@@ -45,6 +45,8 @@ namespace World {
         int m_heightChunks = 0;
         int m_depthChunks = 0;
 
+        const BlockRegistryTable* m_registryReference = nullptr;
+
         std::vector<Chunk> m_chunks;
         std::vector<Render::ChunkRenderState> m_renderStates;
         std::vector<glm::vec3> m_worldPositions;

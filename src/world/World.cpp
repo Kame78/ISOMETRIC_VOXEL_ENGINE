@@ -1,6 +1,5 @@
 #include "../../include/world/World.hpp"
 #include "../../include/world/WorldGenerator.hpp"
-#include "../../include/world/FeatureDecorator.hpp"
 #include <algorithm>
 
 namespace World {
@@ -36,11 +35,11 @@ namespace World {
 
         auto dynamicPalette = WorldGenerator::CompileDynamicPalette(registry);
 
-        for (int cy = 0; cy < m_widthChunks; ++cy) {
-            for (int cz = 0; cz < m_heightChunks; ++cz) {
-                for (int cx = 0; cx < m_depthChunks; ++cx) {
+        for (int cy = 0; cy < m_heightChunks; ++cy) {
+            for (int cz = 0; cz < m_depthChunks; ++cz) {
+                for (int cx = 0; cx < m_widthChunks; ++cx) {
                     
-                    size_t index = GetChunkIndex(cx, cy, cz);
+                    const size_t index = GetChunkIndex(cx, cy, cz);
 
                     m_worldPositions[index] = glm::vec3(
                         static_cast<float>(cx * CHUNK_SIZE) * 2.0f,
@@ -75,10 +74,10 @@ namespace World {
 void World::RebuildDirtyMeshes() noexcept {
     if (m_chunks.empty()) return;
 
-    for (int cy = 0; cy < m_widthChunks; ++cy) {
-        for (int cz = 0; cz < m_heightChunks; ++cz) {
-            for (int cx = 0; cx < m_depthChunks; ++cx) {
-                size_t index = GetChunkIndex(cx, cy, cz);
+    for (int cy = 0; cy < m_heightChunks; ++cy) {
+        for (int cz = 0; cz < m_depthChunks; ++cz) {
+            for (int cx = 0; cx < m_widthChunks; ++cx) {
+                const size_t index = GetChunkIndex(cx, cy, cz);
 
                 if (m_dirtyFlags[index] == 0) [[likely]] {
                     continue;
@@ -94,9 +93,11 @@ void World::RebuildDirtyMeshes() noexcept {
                 Render::ChunkMesher::BuildMesh(
                     m_chunks[index],
                     m_renderStates[index].mesh,
-                    left, right, back, front, bottom, top
+                    left, right, back, front, bottom, top,
+                    *m_registryReference
                 );
-                m_chunks[index].isDirty = 0;
+               
+                 m_dirtyFlags[index] = 0;
             }
         }
     }

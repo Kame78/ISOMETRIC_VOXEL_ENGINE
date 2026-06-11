@@ -11,10 +11,12 @@ namespace Render {
 
     class ChunkRenderer {
     public:
+    ChunkRenderer() = default;
+    ~ChunkRenderer() = default;
 
-    void Render(const std::vector<World::Chunk>& chunks,
-                const std::vector<ChunkRenderState>& renderStates,
-                const Shader& shader,
-                const Camera& camera) const;
+    void Render(const std::vector<ChunkRenderState>& renderStates,
+                    const std::vector<glm::vec3>& chunkPositions,
+                    const Shader& shader,
+                    const Camera& camera) const noexcept;
     };
 }
