@@ -5,6 +5,10 @@
 
 namespace World {
 
+    constexpr float BLOCK_WIDTH = 8.0f;
+    constexpr float BLOCK_HEIGHT = 1.0f;
+    constexpr float BLOCK_DEPTH = 8.0f;
+
     void World::GenerateDiorama(int widthChunks, int heightChunks, int depthChunks, uint32_t seed, const BlockRegistryTable& registry) noexcept {
         m_registryReference = &registry;
         
@@ -26,8 +30,8 @@ namespace World {
         m_worldPositions.resize(totalChunks);
         m_dirtyFlags.assign(totalChunks, 1);
 
-        const float totalWidthWorld = static_cast<float>(m_widthChunks * CHUNK_SIZE) * 2.0f;
-        const float totalDepthWorld = static_cast<float>(m_depthChunks * CHUNK_SIZE) * 2.0f;
+        const float totalWidthWorld = static_cast<float>(m_widthChunks * CHUNK_SIZE) * 8;
+        const float totalDepthWorld = static_cast<float>(m_depthChunks * CHUNK_SIZE) * 8;
         
         const float centerX = totalWidthWorld / 2.0f;
         const float centerZ = totalDepthWorld / 2.0f;
@@ -45,9 +49,9 @@ namespace World {
                     const size_t index = GetChunkIndex(cx, cy, cz);
 
                     m_worldPositions[index] = glm::vec3(
-                       static_cast<float>(cx) * 32.0f,
-                        static_cast<float>(cy) * 16.0f,
-                        static_cast<float>(cz) * 32.0f
+                      static_cast<float>(cx) * (static_cast<float>(CHUNK_SIZE) * BLOCK_WIDTH),
+                    static_cast<float>(cy) * (static_cast<float>(CHUNK_SIZE) * BLOCK_HEIGHT),
+                    static_cast<float>(cz) * (static_cast<float>(CHUNK_SIZE) * BLOCK_DEPTH)
                     );
 
                     // Pass chunkY down so the generation logic tracks its stack height

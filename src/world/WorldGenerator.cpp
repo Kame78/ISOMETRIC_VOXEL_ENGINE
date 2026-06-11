@@ -34,13 +34,13 @@ namespace World {
     
         // FIX: Core generation nesting realigned to match row-major voxel storage sequential rules (X -> Y -> Z)
         for (size_t x = 0; x < CHUNK_SIZE; ++x) {
-            const float globalX = static_cast<float>(worldOffsetX + static_cast<int>(x)) * 2.0f;
+            const float globalX = static_cast<float>(worldOffsetX + static_cast<int>(x)) * 8.0f;
 
             for (size_t y = 0; y < CHUNK_SIZE; ++y) {
                 const int globalY = (chunkY * static_cast<int>(CHUNK_SIZE)) + static_cast<int>(y);
 
                 for (size_t z = 0; z < CHUNK_SIZE; ++z) {
-                    const float globalZ = static_cast<float>(worldOffsetZ + static_cast<int>(z)) * 2.0f;
+                    const float globalZ = static_cast<float>(worldOffsetZ + static_cast<int>(z)) * 8.0f;
 
                     // Evaluate noise configurations accurately per cell coordinate mapping context
                     const float landMask = Math::NoiseMath::CalculateBoundaryNoise(globalX, globalZ, centerX, centerZ, radius, seed);
@@ -51,7 +51,7 @@ namespace World {
                     }
 
                     const float rawNoise = Math::NoiseMath::CalculateHeightNoise(globalX, globalZ, centerX, centerZ, radius, seed);
-                    const int targetSurfaceY = Math::NoiseMath::QuantizeHeight(rawNoise, 1, totalWorldHeight);
+                    const int targetSurfaceY = Math::NoiseMath::QuantizeHeight(rawNoise, 3, totalWorldHeight);
 
                     if (globalY > targetSurfaceY) [[likely]] {
                         voxelView[x, y, z] = layers.airID;

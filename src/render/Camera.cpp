@@ -48,12 +48,12 @@ void Camera::AdjustZoom(float amount) {
 }
 
 void Camera::UpdateMatrices() {
-    float extentY = 3.0f * m_zoom;
+    float extentY = 3.f * m_zoom;
     float extentX = extentY * m_aspectRatio;
     
     // 🔑 FIXED: Reduce the clipping volume to match the island scale.
     // 0.1f to 500.0f provides much higher sorting precision.
-    m_projectionMatrix = glm::ortho(-extentX, extentX, -extentY, extentY, 0.1f, 1500.0f);
+    m_projectionMatrix = glm::ortho(-extentX, extentX, -extentY, extentY, 0.1f, 3000.0f);
 
     float camDistance = 250.0f; // Closer camera distance = better precision
     glm::vec3 cameraPosition = m_target + glm::vec3(camDistance, camDistance * 0.8164f, camDistance);

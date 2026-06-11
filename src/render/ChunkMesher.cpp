@@ -4,6 +4,14 @@
 
 namespace Render {
 
+constexpr float BLOCK_WIDTH = 8.0f;
+constexpr float BLOCK_HEIGHT = 1.0f;
+constexpr float BLOCK_DEPTH = 8.0f;
+
+constexpr float halfX = BLOCK_WIDTH / 2.0f;
+constexpr float halfY = BLOCK_HEIGHT / 2.0f;
+constexpr float halfZ = BLOCK_DEPTH / 2.0f;
+
 bool ChunkMesher::IsAir(int x, int y, int z, 
                       const World::Chunk& currentChunk,
                       const World::Chunk* left, 
@@ -70,93 +78,91 @@ void ChunkMesher::BuildMesh(const World::Chunk& chunk,
 }
 
 void ChunkMesher::AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
-    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
+    glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, 1.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
     
-    // Horizontal plane at Y = +0.5
-    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
+    // Top face stays a perfect square (8x8), standard 0.0 to 1.0 UV mapping works perfectly
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {1.0f, 0.0f}, col});
     
-    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {1.0f, 1.0f}, col});
 }
 
 void ChunkMesher::AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
-    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
+    glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, -1.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
 
-    // Horizontal plane at Y = -0.5
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {1.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {1.0f, 1.0f}, col});
     
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {1.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, 1.0f}, col});
 }
 
 void ChunkMesher::AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
-    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
+    glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, 0.0f, 1.0f);
     glm::vec4 col = registry.colors[id];
 
-    // Vertical wall at Z = +1.0
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    // 🔑 TILING UVs: Mapping horizontal UVs to BLOCK_WIDTH (8.0f) forces textures 
+    // to repeat horizontally instead of stretching out across the wide slab face.
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {BLOCK_WIDTH, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {BLOCK_WIDTH, BLOCK_HEIGHT}, col});
     
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {BLOCK_WIDTH, BLOCK_HEIGHT}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
 }
 
 void ChunkMesher::AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
-    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
+    glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, 0.0f, -1.0f);
     glm::vec4 col = registry.colors[id];
 
-    // Vertical wall at Z = -1.0
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {BLOCK_WIDTH, 0.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {BLOCK_WIDTH, BLOCK_HEIGHT}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
     
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {BLOCK_WIDTH, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, 0.0f}, col});
 }
 
 void ChunkMesher::AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
-    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
+    glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(-1.0f, 0.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
 
-    // Vertical wall at X = -1.0
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
+    // Left/Right walls span across the BLOCK_DEPTH (Z axis), so tile by BLOCK_DEPTH horizontally
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {BLOCK_DEPTH, 0.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {BLOCK_DEPTH, BLOCK_HEIGHT}, col});
     
-    vertices.push_back({{pos.x - 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x - 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {BLOCK_DEPTH, BLOCK_HEIGHT}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
 }
 
 void ChunkMesher::AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
-    glm::vec3 pos(static_cast<float>(x) * 2.0f, static_cast<float>(y) * 1.0f, static_cast<float>(z) * 2.0f);
+    glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(1.0f, 0.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
 
-    // Vertical wall at X = +1.0
-    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z - 1.0f}, norm, {1.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {BLOCK_DEPTH, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {BLOCK_DEPTH, BLOCK_HEIGHT}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
     
-    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z - 1.0f}, norm, {1.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y + 0.5f, pos.z + 1.0f}, norm, {0.0f, 1.0f}, col});
-    vertices.push_back({{pos.x + 1.0f, pos.y - 0.5f, pos.z + 1.0f}, norm, {0.0f, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {BLOCK_DEPTH, 0.0f}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, 0.0f}, col});
 }
 
 } // namespace Render

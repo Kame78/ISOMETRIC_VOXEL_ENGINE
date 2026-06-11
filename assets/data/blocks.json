@@ -7,7 +7,14 @@
             "movement_cost": 1.0,
             "generation_layer": "surface",
             "color": [0.4, 0.8, 0.2, 1.0],
-            "textures": [0, 0, 0, 0, 0, 0]
+            "textures": [
+                "assets/textures/grass_top.png",  
+                "none",                           
+                "assets/textures/grass_side.png", 
+                "none",                          
+                "none",                           
+                "assets/textures/grass_side.png"  
+            ]
         },
         {
             "string_id": "engine:dirt",
@@ -16,7 +23,7 @@
             "movement_cost": 1.0,
             "generation_layer": "subsurface",
             "color": [0.5, 0.3, 0.1, 1.0],
-            "textures": [1, 1, 1, 1, 1, 1]
+            "textures": [0, 0, 0, 0, 0, 0]
         },
         {
             "string_id": "engine:stone",
@@ -25,7 +32,7 @@
             "movement_cost": 1.5,
             "generation_layer": "base",
             "color": [0.6, 0.6, 0.6, 1.0],
-            "textures": [2, 2, 2, 2, 2, 2]
+            "textures": [0, 0, 0, 0, 0, 0]
         }
     ]
 }

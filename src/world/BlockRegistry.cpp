@@ -26,7 +26,7 @@ namespace World {
             .pad0 = 0
         });
         table.movementCosts.push_back(0.0f);
-        table.textureIndices.push_back({0, 0, 0, 0, 0, 0});
+        table.textureIndices.push_back({-1, -1, -1, -1, -1, -1});
         table.colors.push_back(glm::vec4(0.0f));
         table.coldNames.emplace_back("engine:air");
         table.generationLayers.emplace_back("none");
@@ -46,6 +46,8 @@ namespace World {
                 std::cerr << "[-] Error: Target asset profile lacks structural block tracking arrays.\n";
                 return table;
             }
+
+            std::unordered_map<std::string, int> pathToTextureIdMap;
 
             for (const auto& item : root["blocks"]) {
                 std::string stringId = item.value("string_id", "");
@@ -87,11 +89,35 @@ namespace World {
                 }
                 table.colors.push_back(blockColor);
 
-                std::array<int, 6> texIndices{0, 0, 0, 0, 0, 0};
+                std::array<int, 6> texIndices{-1, -1, -1, -1, -1, -1};
                 if (item.contains("textures") && item["textures"].is_array()) {
-                    auto texArray = item["textures"].get<std::vector<int>>();
+                    auto texArray = item["textures"].get<std::vector<std::string>>();
                     for (size_t i = 0; i < std::min(size_t(6), texArray.size()); ++i) {
-                        texIndices[i] = texArray[i];
+                        const std::string& path = texArray[i];
+
+                        if(path.empty() || path == "none" || path == "0") {
+                            texIndices[i] = -1;
+                            continue;
+                        }
+
+                        auto it = pathToTextureIdMap.find(path);
+                        if (it != pathToTextureIdMap.end()) {
+                            texIndices[i] = it->second;
+                        } else {
+                            auto newTex = std::make_unique<sf::Texture>();
+                            if (newTex->loadFromFile(path)) {
+                                newTex->setSmooth(true);
+                                newTex->setRepeated(true);
+
+                                int newIndex = static_cast<int>(table.loadedTextures.size());
+                                pathToTextureIdMap[path] = newIndex;
+                                texIndices[i] = newIndex;
+                                table.loadedTextures.push_back(std::move(newTex));    
+                            } else {
+                                std::cerr << "[-] BlockRegistry Error: Failed to load file from path asset (texture): " << path << "\n";
+                                texIndices[i] = -1;
+                            }
+                        }
                     }
                 }
                 table.textureIndices.push_back(texIndices);

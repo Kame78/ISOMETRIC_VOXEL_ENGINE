@@ -58,7 +58,7 @@ int main() {
     std::cout << "WORLD PIPELINE INITIATED: Running Seed -> " << runtimeSeed << std::endl;
 
     World::World gameWorld;
-    gameWorld.GenerateDiorama(25, 5, 25, runtimeSeed, blockRegistry);
+    gameWorld.GenerateDiorama(12, 5, 12, runtimeSeed, blockRegistry);
 
     float islandCenter = (6.0f * static_cast<float>(World::CHUNK_SIZE) * 2.0f) / 2.0f;
     camera.SetTarget(glm::vec3(islandCenter, 16.0f, islandCenter));

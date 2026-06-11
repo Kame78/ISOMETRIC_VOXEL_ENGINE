@@ -91,7 +91,7 @@ float NoiseMath::CalculateHeightNoise(float x, float z, float centerX, float cen
     float heightScale = (boundaryNoise - 0.2f) / 0.8f;
     heightScale = std::clamp(heightScale, 0.0f, 1.0f);
 
-    float curvedBias = std::pow(heightScale, 1.5f);
+    float curvedBias = std::pow(heightScale, 5.0f);
     return curvedBias * (0.65f + (rawNoise * 1.0f) * 0.5f * 0.35f);
 }
 
