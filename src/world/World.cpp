@@ -77,12 +77,6 @@ namespace World {
 void World::RebuildDirtyMeshes() noexcept {
     if (m_chunks.empty()) return;
 
-    std::cout << "[DEBUG] Starting mesh rebuild..." << std::endl;
-
-
-
-    
-
     for (int cy = 0; cy < m_heightChunks; ++cy) {
         for (int cz = 0; cz < m_depthChunks; ++cz) {
             for (int cx = 0; cx < m_widthChunks; ++cx) {
@@ -91,8 +85,6 @@ void World::RebuildDirtyMeshes() noexcept {
                 if (m_dirtyFlags[index] == 0) [[likely]] {
                     continue;
                 }
-
-                std::cout << "[DEBUG] Building mesh for chunk at index: " << index << std::endl;
 
                 const Chunk* left   = GetChunkAt(cx - 1, cy, cz);
                 const Chunk* right  = GetChunkAt(cx + 1, cy, cz);
@@ -110,9 +102,6 @@ void World::RebuildDirtyMeshes() noexcept {
                
                  m_dirtyFlags[index] = 0;
 
-                 std::cout << "[DEBUG] Chunk " << index << " marked clean." << std::endl;
-
-                 
             }
         }
     }

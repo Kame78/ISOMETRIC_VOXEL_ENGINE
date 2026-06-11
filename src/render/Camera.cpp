@@ -26,7 +26,7 @@ void Camera::ProcessInput() noexcept {
     if (Input::IsKeyHeld(sf::Keyboard::Key::A)) Move(glm::vec3(-camSpeed, 0.0f, camSpeed));
     if (Input::IsKeyHeld(sf::Keyboard::Key::D)) Move(glm::vec3(camSpeed, 0.0f, -camSpeed));
     if (Input::IsKeyHeld(sf::Keyboard::Key::S)) Move(glm::vec3(camSpeed, 0.0f, camSpeed));
-    if (Input::IsKeyHeld(sf::Keyboard::Key::W)) Move(glm::vec3(camSpeed, 0.0f, -camSpeed));
+    if (Input::IsKeyHeld(sf::Keyboard::Key::W)) Move(glm::vec3(-camSpeed, 0.0f, -camSpeed));
 
     if(Input::IsKeyHeld(sf::Keyboard::Key::Up)) AdjustZoom(zoomSpeed);
     if(Input::IsKeyHeld(sf::Keyboard::Key::Down)) AdjustZoom(-zoomSpeed);
@@ -48,19 +48,15 @@ void Camera::AdjustZoom(float amount) {
 }
 
 void Camera::UpdateMatrices() {
-    // 1. Set up a clean orthographic viewing bounding box
     float extentY = 3.0f * m_zoom;
     float extentX = extentY * m_aspectRatio;
     
-    // We set clipping planes from 0.1f to 2000.f now that lookAt handles positioning
-    m_projectionMatrix = glm::ortho(-extentX, extentX, -extentY, extentY, 0.1f, 2000.0f);
+    // 🔑 FIXED: Reduce the clipping volume to match the island scale.
+    // 0.1f to 500.0f provides much higher sorting precision.
+    m_projectionMatrix = glm::ortho(-extentX, extentX, -extentY, extentY, 0.1f, 500.0f);
 
-    // 2. 🔑 FIXED: Position the camera along a physical 3D offset vector.
-    // Offsetting by equal parts X and Z gives an exact 45-degree isometric corner horizon angle.
-    float camDistance = 500.0f; 
+    float camDistance = 250.0f; // Closer camera distance = better precision
     glm::vec3 cameraPosition = m_target + glm::vec3(camDistance, camDistance * 0.8164f, camDistance);
 
-    // 3. 🔑 FIXED: Using lookAt automatically creates native, right-handed depth sorting.
-    // This stops background blocks from drawing over the foreground, eliminating the inside-out bug.
     m_viewMatrix = glm::lookAt(cameraPosition, m_target, glm::vec3(0.0f, 1.0f, 0.0f));
 }

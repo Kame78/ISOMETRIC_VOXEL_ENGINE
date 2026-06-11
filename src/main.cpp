@@ -34,15 +34,15 @@ int main() {
     textureSettings.depthBits = 24; 
 
     sf::RenderTexture gameRenderBuffer({logicalWidth, logicalHeight}, textureSettings);
-    gameRenderBuffer.setSmooth(false); 
+    gameRenderBuffer.setSmooth(true); 
 
     // --- SFML 3 HIGH-PERFORMANCE UPSCALE CONTEXT ALIGNMENT ---
     sf::Sprite upscaleSprite(gameRenderBuffer.getTexture());
     upscaleSprite.setScale(sf::Vector2f(
-        1920.0f / static_cast<float>(logicalWidth),
-        -1080.0f / static_cast<float>(logicalHeight)
+        1920.f / static_cast<float>(logicalWidth),
+        1080.f / static_cast<float>(logicalHeight)
     ));
-    upscaleSprite.setOrigin(sf::Vector2f(0.0f, static_cast<float>(logicalHeight)));
+    upscaleSprite.setOrigin(sf::Vector2f(0.0f, 0.0f));
     upscaleSprite.setPosition(sf::Vector2f(0.0f, 0.0f));
 
     auto blockRegistry = World::BlockOps::LoadRegistryFromFile("assets/data/blocks.json");
