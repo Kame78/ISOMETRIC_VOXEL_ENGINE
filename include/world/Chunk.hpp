@@ -2,27 +2,34 @@
 
 #include <cstdint>
 #include <array>
-#include <glm/glm.hpp>
+#include <mdspan>
 
 namespace World {
     using VoxelTypeID = uint16_t;
 
     constexpr int CHUNK_SIZE = 16;
-    constexpr int TOTAL_BLOCKS = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+    constexpr int CHUNK_VOLUME = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
 
-    alignas(64) struct Chunk{
-        std::array<VoxelTypeID, TOTAL_BLOCKS> blocks{};
+    struct Chunk{
+        std::array<VoxelTypeID, CHUNK_VOLUME> blocks{};
 
         glm::vec3 worldPosition{0.0f};
         bool isDirty{true};
 
         [[nodiscard]] constexpr inline VoxelTypeID GetBlock(int x, int y, int z) const noexcept {
-          return blocks[static_cast<size_t>(z + (y * CHUNK_SIZE) + (x * CHUNK_SIZE * CHUNK_SIZE))];
+          return blocks[z + (y * CHUNK_SIZE) + (x * CHUNK_SIZE * CHUNK_SIZE)];
     }
 
         constexpr inline void SetBlock(int x, int y, int z, VoxelTypeID type) noexcept {
-            blocks[static_cast<size_t>(z + (y * CHUNK_SIZE) + (x * CHUNK_SIZE * CHUNK_SIZE))] = type;
-            isDirty = true;
+            blocks[z + (y * CHUNK_SIZE) + (x * CHUNK_SIZE * CHUNK_SIZE)] = type;
+        }
+
+        [[nodiscard]] inline auto AsMdspan() noexcept {
+            return std::mdspan<VoxelTypeID, std::extents<size_t, CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE>, std::layout_right>(blocks.data());
+        }
+
+        [[nodiscard]] inline auto AsMdspan() const noexcept {
+            return std::mdspan<const VoxelTypeID, std::extents<size_t, CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE>, std::layout_right>(blocks.data());
         }
     };
 }

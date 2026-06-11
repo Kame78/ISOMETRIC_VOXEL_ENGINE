@@ -4,23 +4,32 @@
 #include <iostream>
 #include <algorithm>
 
-
 namespace World {
 
     BlockRegistryTable BlockOps::LoadRegistryFromFile(std::string_view jsonPath) noexcept {
         BlockRegistryTable table;
 
-        table.records.reserve(32);
-        table.coldNames.reserve(32);
+        constexpr size_t PRE_ALLOCATION_TARGET = 512;
+        table.simAttributes.reserve(PRE_ALLOCATION_TARGET);
+        table.movementCosts.reserve(PRE_ALLOCATION_TARGET);
+        table.textureIndices.reserve(PRE_ALLOCATION_TARGET);
+        table.colors.reserve(PRE_ALLOCATION_TARGET);
+        table.coldNames.reserve(PRE_ALLOCATION_TARGET);
+        table.generationLayers.reserve(PRE_ALLOCATION_TARGET); // FIX: Pre-allocated memory channel
 
-        table.records.push_back(BlockProperties{
-            .movementCost = 0.0f,
-            .isSolid = false,
-            .isTransparent = true,
-            .textureIndices = {0, 0, 0, 0, 0, 0},
-            .color = glm::vec4(0.0f)
+        // --- EXPLICIT INITIALIZATION FOR ID 0: ENGINE AIR FALLBACK ---
+        table.simAttributes.push_back(SimulationAttributes{
+            .isSolid = 0,
+            .isTransparent = 1,
+            .reservedFlags = 0,
+            .lightOpacity = 0,
+            .pad0 = 0
         });
-        table.coldNames.emplace_back("engine:air", static_cast<VoxelTypeID>(0));
+        table.movementCosts.push_back(0.0f);
+        table.textureIndices.push_back({0, 0, 0, 0, 0, 0});
+        table.colors.push_back(glm::vec4(0.0f));
+        table.coldNames.emplace_back("engine:air");
+        table.generationLayers.emplace_back("none");
         table.nameToIdMap.emplace("engine:air", static_cast<VoxelTypeID>(0));
 
         std::ifstream file((std::string(jsonPath)));
@@ -29,68 +38,92 @@ namespace World {
             return table;
         }
 
-        try{
+        try {
             nlohmann::json root;
             file >> root;
 
             if (!root.contains("blocks") || !root["blocks"].is_array()) {
-                std::cerr<< "[-] Error: Target asset progile lacks structural block tracking arrays. \n";
+                std::cerr << "[-] Error: Target asset profile lacks structural block tracking arrays.\n";
                 return table;
             }
 
-            for (const auto& item: root ["blocks"]) {
+            for (const auto& item : root["blocks"]) {
                 std::string stringId = item.value("string_id", "");
-                if (stringId.empty()) {
+                if (stringId.empty()) [[unlikely]] {
                     std::cerr << "[!] Configuration Warning: Encountered anonymous block profile entry. Skipping line.\n";
                     continue;
-            }
-
-            if (table.nameToIdMap.contains(stringId)) {
-                std::cerr << "[!] Configuration Warning: Duplicate namespace identifier detected: " << stringId << ". Skipping row.\n";
-                continue;
-            }
-
-            auto assignedId = static_cast<VoxelTypeID>(table.records.size());
-
-            BlockProperties props;
-            props.isSolid - item.value("solid", true); 
-            props.isTransparent = item.value("transparent", false);
-            props.movementCost = item.value("movement_cost", 1.0f);
-
-            if (item.contains("color") && item["color"].is_array()) {
-                auto colArray = item["color"].get<std::vector<float>>();
-                if(colArray.size() >=4) {
-                    props.color = glm::vec4(colArray[0], colArray[1], colArray[2], colArray[3]);
                 }
-            }
-            if(item.contains("textures") && item["textures"].is_array()) {
-                auto texArray = item["textures"].get<std::vector<int>>();
-                for (size_t i = 0; i < std::min(size_t(6), texArray.size()); ++i){
-                    props.textureIndices[i] = texArray[i];
-                }
-            }
 
-            table.records.push_back(props);
-            table.coldNames.push_back(stringId);
-            table.nameToIdMap.insert_or_assign(std::move(stringId), assignedId);
+                if (table.nameToIdMap.contains(stringId)) [[unlikely]] {
+                    std::cerr << "[!] Configuration Warning: Duplicate namespace identifier detected: " << stringId << ". Skipping row.\n";
+                    continue;
+                }
+
+                // FIX: Corrected scoped brace placement making assignedId reachable
+                const auto assignedId = static_cast<VoxelTypeID>(table.simAttributes.size());
+
+                // --- STREAM POPULATION CHANNEL EXTRACTIONS ---
+                const bool solidFlag = item.value("solid", true);
+                const bool transFlag = item.value("transparent", false);
+                const uint8_t opacity = transFlag ? static_cast<uint8_t>(item.value("light_opacity", 0)) : 255;
+
+                table.simAttributes.push_back(SimulationAttributes{
+                    .isSolid = static_cast<uint8_t>(solidFlag ? 1 : 0),
+                    .isTransparent = static_cast<uint8_t>(transFlag ? 1 : 0),
+                    .reservedFlags = 0,
+                    .lightOpacity = opacity,
+                    .pad0 = 0
+                });
+
+                table.movementCosts.push_back(item.value("movement_cost", 1.0f));
+                table.generationLayers.push_back(item.value("generation_layer", "none"));
+
+                glm::vec4 blockColor(1.0f);
+                if (item.contains("color") && item["color"].is_array()) {
+                    auto colArray = item["color"].get<std::vector<float>>();
+                    if (colArray.size() >= 4) {
+                        blockColor = glm::vec4(colArray[0], colArray[1], colArray[2], colArray[3]);
+                    }
+                }
+                table.colors.push_back(blockColor);
+
+                std::array<int, 6> texIndices{0, 0, 0, 0, 0, 0};
+                if (item.contains("textures") && item["textures"].is_array()) {
+                    auto texArray = item["textures"].get<std::vector<int>>();
+                    for (size_t i = 0; i < std::min(size_t(6), texArray.size()); ++i) {
+                        texIndices[i] = texArray[i];
+                    }
+                }
+                table.textureIndices.push_back(texIndices);
+                
+                // Track cold properties completely decoupled from hot paths
+                table.coldNames.push_back(stringId);
+                table.nameToIdMap.insert_or_assign(std::move(stringId), assignedId);
+            }
+            std::cout << "[+] System Registry loaded successfully. Total Active Voxel Profiles: " << table.Size() << "\n";
+        } 
+        catch (const std::exception& e) {
+            std::cerr << "[-] Exception caught parsing registry sheet: " << e.what() << "\n";
         }
-        std::cout << "[+] System Registry loaded successfully. Total Active Voxel Profiles: " << table.records.size() << "\n";
-    } catch (const std::exception& e) {
-        std::cerr << "[-] Exception caught parsing registry sheet: " << e.what() << "\n";
+        return table;
     }
-    return table;
-}
 
-VoxelTypeID BlockOps::FindIdByString(const BlockRegistryTable& table, std::string_view internalName) noexcept {
-    auto it = table.nameToIdMap.find(internalName);
-
-    if(it != table.nameToIdMap.end()) {
-        return it->second;
+    VoxelTypeID BlockOps::FindIdByString(const BlockRegistryTable& table, std::string_view internalName) noexcept {
+        auto it = table.nameToIdMap.find(internalName);
+        if (it != table.nameToIdMap.end()) {
+            return it->second;
+        }
+        return static_cast<VoxelTypeID>(0);
     }
-    std::cerr << "[!] Runtime Alert: Requested unmapped voxel lookup identity: " << internalName << ". Routing to Air handle fallback.\n";
-    return static_cast<VoxelTypeID>(0);
-}
 
-}
+    VoxelTypeID BlockOps::FindIdByGenerationLayer(const BlockRegistryTable& table, std::string_view layerRole) noexcept {
+        // Linear scan over cold text arrays is perfectly efficient because it runs outside performance-critical loops
+        for (size_t i = 0; i < table.generationLayers.size(); ++i) {
+            if (table.generationLayers[i] == layerRole) {
+                return static_cast<VoxelTypeID>(i);
+            }
+        }
+        return static_cast<VoxelTypeID>(0); // Fallback to engine:air if unassigned
+    }
 
-
+} // namespace World

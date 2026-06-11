@@ -1,31 +1,31 @@
 {
     "blocks": [
         {
-            "string_id": "engine:dirt",
-            "name": "Dirt",
+            "string_id": "engine:grass",
             "solid": true,
             "transparent": false,
-            "color": [0.45, 0.34, 0.22, 1.0],
-            "textures": [2, 2, 2, 2, 2, 2],
-            "movementCost": 1.0
+            "movement_cost": 1.0,
+            "generation_layer": "surface",
+            "color": [0.4, 0.8, 0.2, 1.0],
+            "textures": [0, 0, 0, 0, 0, 0]
+        },
+        {
+            "string_id": "engine:dirt",
+            "solid": true,
+            "transparent": false,
+            "movement_cost": 1.0,
+            "generation_layer": "subsurface",
+            "color": [0.5, 0.3, 0.1, 1.0],
+            "textures": [1, 1, 1, 1, 1, 1]
         },
         {
             "string_id": "engine:stone",
-            "name": "Stone",
             "solid": true,
             "transparent": false,
-            "color": [0.5, 0.5, 0.5, 1.0],
-            "textures": [3, 3, 3, 3, 3, 3],
-            "movementCost": 1.5
-        },
-        {
-            "string_id": "engine:grass",
-            "name": "Grass",
-            "solid": true,
-            "transparent": false,
-            "color": [0.32, 0.51, 0.23, 1.0],
-            "textures": [0, 2, 1, 1, 1, 1],
-            "movementCost": 1.0
+            "movement_cost": 1.5,
+            "generation_layer": "base",
+            "color": [0.6, 0.6, 0.6, 1.0],
+            "textures": [2, 2, 2, 2, 2, 2]
         }
     ]
 }
