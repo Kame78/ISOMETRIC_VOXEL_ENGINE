@@ -81,6 +81,7 @@ void ChunkMesher::AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z,
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, 1.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
+    col.a = static_cast<float>(registry.textureIndices[id][0]);
     
     // Top face stays a perfect square (8x8), standard 0.0 to 1.0 UV mapping works perfectly
     vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, 1.0f}, col});
@@ -96,6 +97,7 @@ void ChunkMesher::AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, -1.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
+    col.a = static_cast<float>(registry.textureIndices[id][1]);
 
     vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, 0.0f}, col});
     vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {1.0f, 0.0f}, col});
@@ -109,60 +111,80 @@ void ChunkMesher::AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int
 void ChunkMesher::AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, 0.0f, 1.0f);
-    glm::vec4 col = registry.colors[id];
-
-    // 🔑 TILING UVs: Mapping horizontal UVs to BLOCK_WIDTH (8.0f) forces textures 
-    // to repeat horizontally instead of stretching out across the wide slab face.
-    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {BLOCK_WIDTH, 0.0f}, col});
-    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {BLOCK_WIDTH, BLOCK_HEIGHT}, col});
     
-    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {BLOCK_WIDTH, BLOCK_HEIGHT}, col});
-    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
+    glm::vec4 col = registry.colors[id];
+    col.a = static_cast<float>(registry.textureIndices[id][2]);
+
+    float vBottom = static_cast<float>(y) / 8.0f;
+    float vTop    = static_cast<float>(y + 1) / 8.0f;
+
+    // 🔑 FIX: Replaced old hardcoded vertical UVs with vBottom and vTop variables
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {1.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {1.0f, vTop},    col});
+    
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {1.0f, vTop},    col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, vTop},    col});
 }
 
 void ChunkMesher::AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, 0.0f, -1.0f);
-    glm::vec4 col = registry.colors[id];
-
-    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {BLOCK_WIDTH, 0.0f}, col});
-    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {BLOCK_WIDTH, BLOCK_HEIGHT}, col});
-    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
     
-    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {BLOCK_WIDTH, 0.0f}, col});
-    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
-    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, 0.0f}, col});
+    glm::vec4 col = registry.colors[id];
+    col.a = static_cast<float>(registry.textureIndices[id][3]);
+
+    float vBottom = static_cast<float>(y) / 8.0f;
+    float vTop    = static_cast<float>(y + 1) / 8.0f;
+
+    // 🔑 FIX: Replaced old hardcoded vertical UVs with vBottom and vTop variables
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {1.0f, vBottom}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {1.0f, vTop},    col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, vTop},    col});
+    
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {1.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, vTop},    col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, vBottom}, col});
 }
 
 void ChunkMesher::AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(-1.0f, 0.0f, 0.0f);
-    glm::vec4 col = registry.colors[id];
-
-    // Left/Right walls span across the BLOCK_DEPTH (Z axis), so tile by BLOCK_DEPTH horizontally
-    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {BLOCK_DEPTH, 0.0f}, col});
-    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {BLOCK_DEPTH, BLOCK_HEIGHT}, col});
     
-    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, 0.0f}, col});
-    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {BLOCK_DEPTH, BLOCK_HEIGHT}, col});
-    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
+    glm::vec4 col = registry.colors[id];
+    col.a = static_cast<float>(registry.textureIndices[id][4]);
+
+    float vBottom = static_cast<float>(y) / 8.0f;
+    float vTop    = static_cast<float>(y + 1) / 8.0f;
+
+    // 🔑 FIX: Replaced old hardcoded vertical UVs with vBottom and vTop variables
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, vBottom}, col});
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {1.0f, vBottom}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {1.0f, vTop},    col});
+    
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, vBottom}, col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {1.0f, vTop},    col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, vTop},    col});
 }
 
 void ChunkMesher::AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(1.0f, 0.0f, 0.0f);
-    glm::vec4 col = registry.colors[id];
-
-    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {BLOCK_DEPTH, 0.0f}, col});
-    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {BLOCK_DEPTH, BLOCK_HEIGHT}, col});
-    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
     
-    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {BLOCK_DEPTH, 0.0f}, col});
-    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, BLOCK_HEIGHT}, col});
-    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, 0.0f}, col});
-}
+    glm::vec4 col = registry.colors[id];
+    col.a = static_cast<float>(registry.textureIndices[id][5]);
 
+    float vBottom = static_cast<float>(y) / 8.0f;
+    float vTop    = static_cast<float>(y + 1) / 8.0f;
+
+    // 🔑 FIX: Replaced old hardcoded vertical UVs with vBottom and vTop variables
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {1.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {1.0f, vTop},    col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, vTop},    col});
+    
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {1.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, vTop},    col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, vBottom}, col});
+}
 } // namespace Render

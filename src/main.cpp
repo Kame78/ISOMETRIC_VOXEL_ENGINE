@@ -15,6 +15,7 @@
 #include "render/ChunkMesher.hpp"
 #include "render/Mesh.hpp"
 #include "render/Primitives.hpp"
+#include "render/TextureManager.hpp"
 #include "world/Chunk.hpp"
 #include "world/BlockRegistry.hpp"
 #include "world/WorldGenerator.hpp"
@@ -41,7 +42,12 @@ int main() {
     upscaleSprite.setOrigin(sf::Vector2f(0.0f, 0.0f));
     upscaleSprite.setPosition(sf::Vector2f(0.0f, 0.0f));
 
-    auto blockRegistry = World::BlockOps::LoadRegistryFromFile("assets/data/blocks.json");
+    Render::TextureManager textureManager;
+    std::vector<std::string> uniqueTexturePaths;
+
+    auto blockRegistry = World::BlockOps::LoadRegistryFromFile("assets/data/blocks.json", uniqueTexturePaths);
+
+    blockRegistry.textureArrayID = textureManager.CreateTextureArray(uniqueTexturePaths, 256, 256);
 
     Renderer renderer;
     Render::ChunkRenderer chunkRenderer;
@@ -70,6 +76,8 @@ int main() {
     static bool useCCW     = true;
 
     gameWorld.RebuildDirtyMeshes();
+
+    sf::Clock windAnimationClock;
 
     while (window.IsOpen()) {
         Input::UpdateStates();
@@ -133,7 +141,16 @@ int main() {
         }
 
         // --- STEP 2: EXECUTE VOLUMETRIC GEOMETRY GENERATION AND DRAWS ---
-        renderer.BeginFrame(); 
+        renderer.BeginFrame();
+
+        isoShader.Bind();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, blockRegistry.textureArrayID);
+        isoShader.SetInt("uTextureArray", 0);
+
+        float currentSeconds = windAnimationClock.getElapsedTime().asSeconds();
+        glUniform1f(glGetUniformLocation(isoShader.GetId(), "uTime"), currentSeconds);
+
         chunkRenderer.Render(gameWorld.GetRenderStates(), gameWorld.GetChunkPositions(), isoShader, camera);        
         gameRenderBuffer.display();
 

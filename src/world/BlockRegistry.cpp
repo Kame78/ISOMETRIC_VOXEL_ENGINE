@@ -6,7 +6,7 @@
 
 namespace World {
 
-    BlockRegistryTable BlockOps::LoadRegistryFromFile(std::string_view jsonPath) noexcept {
+    BlockRegistryTable BlockOps::LoadRegistryFromFile(std::string_view jsonPath, std::vector<std::string>& outUniqueTextures) noexcept {
         BlockRegistryTable table;
 
         constexpr size_t PRE_ALLOCATION_TARGET = 512;
@@ -104,19 +104,10 @@ namespace World {
                         if (it != pathToTextureIdMap.end()) {
                             texIndices[i] = it->second;
                         } else {
-                            auto newTex = std::make_unique<sf::Texture>();
-                            if (newTex->loadFromFile(path)) {
-                                newTex->setSmooth(true);
-                                newTex->setRepeated(true);
-
-                                int newIndex = static_cast<int>(table.loadedTextures.size());
-                                pathToTextureIdMap[path] = newIndex;
-                                texIndices[i] = newIndex;
-                                table.loadedTextures.push_back(std::move(newTex));    
-                            } else {
-                                std::cerr << "[-] BlockRegistry Error: Failed to load file from path asset (texture): " << path << "\n";
-                                texIndices[i] = -1;
-                            }
+                           int newIndex = static_cast<int>(outUniqueTextures.size());
+                           pathToTextureIdMap[path] = newIndex;
+                           outUniqueTextures.push_back(path);
+                           texIndices[i] = newIndex;
                         }
                     }
                 }

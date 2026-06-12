@@ -10,6 +10,7 @@ namespace World {
         VoxelTypeID surfaceID;
         VoxelTypeID subsurfaceID;
         VoxelTypeID baseID;
+        VoxelTypeID waterID;
     };
 
     class WorldGenerator {

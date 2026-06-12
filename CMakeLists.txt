@@ -46,6 +46,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/math/NoiseMath.cpp
     src/world/WorldGenerator.cpp
     src/world/World.cpp
+    src/render/TextureManager.cpp
 )
 
 # ==============================================================================

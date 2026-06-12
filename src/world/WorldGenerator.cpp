@@ -11,7 +11,8 @@ namespace World {
             .airID        = 0, // 0 is explicitly reserved for engine air spaces
             .surfaceID    = BlockOps::FindIdByGenerationLayer(registry, "surface"),
             .subsurfaceID = BlockOps::FindIdByGenerationLayer(registry, "subsurface"),
-            .baseID       = BlockOps::FindIdByGenerationLayer(registry, "base")
+            .baseID       = BlockOps::FindIdByGenerationLayer(registry, "base"),
+            .waterID      = BlockOps::FindIdByGenerationLayer(registry, "water")
         };
     }
 
@@ -31,43 +32,65 @@ namespace World {
         const int worldOffsetZ = chunkZ * static_cast<int>(CHUNK_SIZE);
 
         auto voxelView = chunk.AsMdspan();
-    
-        // FIX: Core generation nesting realigned to match row-major voxel storage sequential rules (X -> Y -> Z)
+        const int MOUNTAIN_THRESHOLD_Y = 39;
+
+        const int SEA_LEVEL_Y = 33;
+
+      // 🔑 CORRECT LAYOUT SEQUENCE: X -> Z -> Y
         for (size_t x = 0; x < CHUNK_SIZE; ++x) {
             const float globalX = static_cast<float>(worldOffsetX + static_cast<int>(x)) * 8.0f;
 
-            for (size_t y = 0; y < CHUNK_SIZE; ++y) {
-                const int globalY = (chunkY * static_cast<int>(CHUNK_SIZE)) + static_cast<int>(y);
+            for (size_t z = 0; z < CHUNK_SIZE; ++z) {
+                const float globalZ = static_cast<float>(worldOffsetZ + static_cast<int>(z)) * 8.0f;
 
-                for (size_t z = 0; z < CHUNK_SIZE; ++z) {
-                    const float globalZ = static_cast<float>(worldOffsetZ + static_cast<int>(z)) * 8.0f;
+                // Evaluate noise coordinates ONCE per single horizontal column map step
+                const float landMask = Math::NoiseMath::CalculateBoundaryNoise(globalX, globalZ, centerX, centerZ, radius, seed);
+                const float rawNoise = Math::NoiseMath::CalculateHeightNoise(globalX, globalZ, centerX, centerZ, radius, seed);
+                const int targetSurfaceY = Math::NoiseMath::QuantizeHeight(rawNoise, 3, totalWorldHeight);
 
-                    // Evaluate noise configurations accurately per cell coordinate mapping context
-                    const float landMask = Math::NoiseMath::CalculateBoundaryNoise(globalX, globalZ, centerX, centerZ, radius, seed);
+                for (size_t y = 0; y < CHUNK_SIZE; ++y) {
+                    const int globalY = (chunkY * static_cast<int>(CHUNK_SIZE)) + static_cast<int>(y);
 
+                    // =========================================================
+                    // ZONE A: OPEN OCEAN (Outside the island perimeter mask)
+                    // =========================================================
                     if (landMask < 0.2f) {
-                        voxelView[x, y, z] = layers.airID;
+                        if (globalY <= SEA_LEVEL_Y) {
+                            voxelView[x, y, z] = layers.waterID; 
+                        } else {
+                            voxelView[x, y, z] = layers.airID;   
+                        }
                         continue;
                     }
 
-                    const float rawNoise = Math::NoiseMath::CalculateHeightNoise(globalX, globalZ, centerX, centerZ, radius, seed);
-                    const int targetSurfaceY = Math::NoiseMath::QuantizeHeight(rawNoise, 3, totalWorldHeight);
-
-                    if (globalY > targetSurfaceY) [[likely]] {
-                        voxelView[x, y, z] = layers.airID;
+                    // =========================================================
+                    // ZONE B: THE ISLAND LANDMASS
+                    // =========================================================
+                    if (globalY > targetSurfaceY) {
+                        if (globalY <= SEA_LEVEL_Y) {
+                            voxelView[x, y, z] = layers.waterID;
+                        } else {
+                            voxelView[x, y, z] = layers.airID;
+                        }
                     }
-                    else if (globalY == targetSurfaceY) {
-                        voxelView[x, y, z] = layers.surfaceID;
-                    }
-                    else if (globalY < targetSurfaceY && globalY >= targetSurfaceY - 3) {
-                        voxelView[x, y, z] = layers.subsurfaceID;
+                    else if (targetSurfaceY >= MOUNTAIN_THRESHOLD_Y) {
+                        voxelView[x, y, z] = layers.baseID; // Bare stone peaks
                     }
                     else {
-                        voxelView[x, y, z] = layers.baseID;
+                        // Lowland strata configurations
+                        if (globalY == targetSurfaceY) {
+                            voxelView[x, y, z] = layers.surfaceID; 
+                        }
+                        else if (globalY < targetSurfaceY && globalY >= targetSurfaceY - 5) {
+                            voxelView[x, y, z] = layers.subsurfaceID; 
+                        }
+                        else {
+                            voxelView[x, y, z] = layers.baseID; 
+                        }
                     }
-                }
-            }
-        }
+                } // End of y loop
+            } // End of z loop
+        } // End of x loop
     }
 
 } // namespace World

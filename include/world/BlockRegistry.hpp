@@ -44,7 +44,8 @@ namespace World {
        std::vector<std::string>             coldNames;
        std::vector<std::string>             generationLayers;
        std::unordered_map<std::string, VoxelTypeID, TransparentStringHash, std::equal_to<>> nameToIdMap;
-       std::vector<std::unique_ptr<sf::Texture>> loadedTextures;
+       
+       unsigned int textureArrayID {0};
        
        [[nodiscard]] inline size_t Size() const noexcept {
            return simAttributes.size();
@@ -52,7 +53,7 @@ namespace World {
     };
 
     namespace BlockOps {
-        [[nodiscard]] BlockRegistryTable LoadRegistryFromFile(std::string_view jsonPath) noexcept;
+        [[nodiscard]] BlockRegistryTable LoadRegistryFromFile(std::string_view jsonPath, std::vector<std::string>& outUniqueTextures) noexcept;
         
         [[nodiscard]] VoxelTypeID FindIdByString(const BlockRegistryTable& table, std::string_view internalName) noexcept;
 
@@ -97,13 +98,6 @@ namespace World {
             }
             return table.colors[0];
         }
-
-        [[nodiscard]] inline const sf::Texture* GetTextureById(const BlockRegistryTable& table, int textureId) noexcept {
-            if (textureId >= 0 && static_cast<size_t>(textureId) < table.loadedTextures.size()) [[likely]] {
-                return table.loadedTextures[textureId].get();
-            }
-            return nullptr;
-            }
-        }
     }
+}
 

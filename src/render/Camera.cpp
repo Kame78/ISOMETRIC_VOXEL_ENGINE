@@ -48,7 +48,7 @@ void Camera::AdjustZoom(float amount) {
 }
 
 void Camera::UpdateMatrices() {
-    float extentY = 3.f * m_zoom;
+    float extentY = 5.0f * m_zoom;
     float extentX = extentY * m_aspectRatio;
     
     // 🔑 FIXED: Reduce the clipping volume to match the island scale.

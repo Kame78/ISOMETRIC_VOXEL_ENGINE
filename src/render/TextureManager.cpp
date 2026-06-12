@@ -1,6 +1,13 @@
 #include "../../include/render/TextureManager.hpp"
 #include <SFML/Graphics/Image.hpp>
 #include <iostream>
+#include <glad/glad.h>
+
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+
 
 namespace Render {
 
@@ -8,9 +15,8 @@ namespace Render {
         int layerCount = static_cast<int>(filePath.size());
         if (layerCount == 0) return 0;
 
-        uint32_t arrayID = 0;
-        glGenTextures(1, &arrayID);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, arrayID);
+        glGenTextures(1, &m_globalBlockArrayID);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, m_globalBlockArrayID);
 
         glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, width, height, layerCount, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
@@ -25,12 +31,22 @@ namespace Render {
                 std::cerr << "[-] TextureManager Error: Failed to open file: " << filePath[i] << "\n";
             }
         }
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        GLfloat maxAnisotropy = 0.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
+        if (maxAnisotropy > 0.0f) {
+            GLfloat amount = std::min(4.0f, maxAnisotropy);
+            glTexParameterf(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
+        }
         
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-        return arrayID;
+        return m_globalBlockArrayID;
     }  
 }

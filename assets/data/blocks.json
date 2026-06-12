@@ -8,12 +8,12 @@
             "generation_layer": "surface",
             "color": [0.4, 0.8, 0.2, 1.0],
             "textures": [
-                "assets/textures/grass_top.png",  
+                "assets/textures/grass.png",  
                 "none",                           
-                "assets/textures/grass_side.png", 
-                "none",                          
+                "assets/textures/grass.png", 
                 "none",                           
-                "assets/textures/grass_side.png"  
+                "none",                           
+                "assets/textures/grass.png"  
             ]
         },
         {
@@ -23,7 +23,14 @@
             "movement_cost": 1.0,
             "generation_layer": "subsurface",
             "color": [0.5, 0.3, 0.1, 1.0],
-            "textures": [0, 0, 0, 0, 0, 0]
+            "textures": [
+                "assets/textures/dirt.png",
+                "none",
+                "assets/textures/dirt.png",
+                "none",
+                "none",
+                "assets/textures/dirt.png"
+            ]
         },
         {
             "string_id": "engine:stone",
@@ -32,7 +39,30 @@
             "movement_cost": 1.5,
             "generation_layer": "base",
             "color": [0.6, 0.6, 0.6, 1.0],
-            "textures": [0, 0, 0, 0, 0, 0]
+            "textures": [
+                "assets/textures/stone_top.png",  
+                "none",                           
+                "assets/textures/stone_side.png", 
+                "none",                           
+                "none",                           
+                "assets/textures/stone_side.png"  
+            ]
+        },
+        {
+            "string_id": "engine:water", 
+            "solid": true,
+            "transparent": false,
+            "movement_cost": 3.0,
+            "generation_layer": "surface",
+            "color": [1.0, 1.0, 1.0, 1.0],
+            "textures": [
+                "assets/textures/water_top.png",  
+                "none",                           
+                "assets/textures/water_side.png", 
+                "none",                           
+                "none",                           
+                "assets/textures/water_side.png"  
+            ]
         }
     ]
 }
