@@ -12,7 +12,7 @@ namespace World {
             .surfaceID    = BlockOps::FindIdByGenerationLayer(registry, "surface"),
             .subsurfaceID = BlockOps::FindIdByGenerationLayer(registry, "subsurface"),
             .baseID       = BlockOps::FindIdByGenerationLayer(registry, "base"),
-            .waterID      = BlockOps::FindIdByGenerationLayer(registry, "water")
+            .waterID      = BlockOps::FindIdByGenerationLayer(registry, "engine:water")
         };
     }
 
