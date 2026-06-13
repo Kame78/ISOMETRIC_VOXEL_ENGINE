@@ -12,7 +12,7 @@ namespace World {
             .surfaceID    = BlockOps::FindIdByGenerationLayer(registry, "surface"),
             .subsurfaceID = BlockOps::FindIdByGenerationLayer(registry, "subsurface"),
             .baseID       = BlockOps::FindIdByGenerationLayer(registry, "base"),
-            .waterID      = BlockOps::FindIdByGenerationLayer(registry, "engine:water")
+            .waterID      = BlockOps::FindIdByString(registry, "engine:water")
         };
     }
 
@@ -32,9 +32,9 @@ namespace World {
         const int worldOffsetZ = chunkZ * static_cast<int>(CHUNK_SIZE);
 
         auto voxelView = chunk.AsMdspan();
-        const int MOUNTAIN_THRESHOLD_Y = 39;
+        const int MOUNTAIN_THRESHOLD_Y = 300;
 
-        const int SEA_LEVEL_Y = 33;
+        const int SEA_LEVEL_Y = 0;
 
       // 🔑 CORRECT LAYOUT SEQUENCE: X -> Z -> Y
         for (size_t x = 0; x < CHUNK_SIZE; ++x) {
@@ -81,7 +81,7 @@ namespace World {
                         if (globalY == targetSurfaceY) {
                             voxelView[x, y, z] = layers.surfaceID; 
                         }
-                        else if (globalY < targetSurfaceY && globalY >= targetSurfaceY - 5) {
+                        else if (globalY < targetSurfaceY && globalY >= targetSurfaceY - 30) {
                             voxelView[x, y, z] = layers.subsurfaceID; 
                         }
                         else {

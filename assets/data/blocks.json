@@ -40,12 +40,12 @@
             "generation_layer": "base",
             "color": [0.6, 0.6, 0.6, 1.0],
             "textures": [
-                "assets/textures/stone_top.png",  
+                "assets/textures/rock.png",  
                 "none",                           
-                "assets/textures/stone_side.png", 
+                "assets/textures/rock.png", 
                 "none",                           
                 "none",                           
-                "assets/textures/stone_side.png"  
+                "assets/textures/rock.png"  
             ]
         },
         {
@@ -62,6 +62,22 @@
                 "none",                           
                 "none",                           
                 "assets/textures/water_side.png"  
+            ]
+        }, 
+        {
+            "string_id": "engine:tree",
+            "solid": false,
+            "transparent": true,
+            "movement_cost": 2.5,
+            "generation_layer": "surface",
+            "color": [1.0, 1.0, 1.0, 1.0],
+            "textures": [
+                "assets/textures/tree.png",  
+                "none",                           
+                "none", 
+                "none",                           
+                "none",                           
+                "none"  
             ]
         }
     ]

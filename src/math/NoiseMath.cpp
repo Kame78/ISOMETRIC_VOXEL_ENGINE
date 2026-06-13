@@ -75,24 +75,27 @@ float NoiseMath::CalculateBoundaryNoise(float x, float z, float centerX, float c
 
 float NoiseMath::CalculateHeightNoise(float x, float z, float centerX, float centerZ, float maxRadius, uint32_t seed) noexcept {
     float seedOffset = static_cast<float>(seed * 17);
-    float rawNoise = FractalNoise2D(x + seedOffset, z + seedOffset, 4, 0.012f, 0.35f);    
+    float cleanHillNoise = FractalNoise2D(x + seedOffset, z + seedOffset, 2, 0.004f, 0.30f);
 
-    float warpedX = x + (rawNoise * 6.0f);
-    float warpedZ = z + (rawNoise * 6.0f);
-
-    float dx = warpedX - centerX;
-    float dz = warpedZ - centerZ;
+    float dx = x - centerX;
+    float dz = z - centerZ;
 
     float distance = std::sqrt(dx * dx + dz * dz);
     float normalizedDist = distance / maxRadius;
 
-    float boundaryNoise= 1.0f - (normalizedDist * normalizedDist) + (rawNoise * 0.35f);
-    
-    float heightScale = (boundaryNoise - 0.2f) / 0.8f;
-    heightScale = std::clamp(heightScale, 0.0f, 1.0f);
+    // Smooth base island dome shape
+    float islandDome = 1.0f - (normalizedDist * normalizedDist);
+    islandDome = std::clamp(islandDome, 0.0f, 1.0f);
 
-    float curvedBias = std::pow(heightScale, 10.0f);
-    return curvedBias * (0.65f + (rawNoise * 1.0f) * 0.5f * 0.35f);
+    // Map noise smoothly from [-1.0, 1.0] to a gentle [0.2, 0.8] variance
+    float hillScale = (cleanHillNoise * 0.3f) + 1.f;
+
+    // Combine smooth rolling hills with a subtle radial lift towards the interior.
+    // Because the high-frequency static is gone, your 3-block step quantization 
+    // will now form beautiful, clean, sweeping tactical terraces!
+    float combinedNoise = islandDome * (0.15f + hillScale * 0.55f);
+
+    return std::clamp(combinedNoise, 0.0f, 1.0f);
 }
 
 float NoiseMath::CalculateRockDensity(float x, float z, uint32_t seed) noexcept {
