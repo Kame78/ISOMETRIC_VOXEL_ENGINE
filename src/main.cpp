@@ -17,7 +17,8 @@
 #include "render/Primitives.hpp"
 #include "render/TextureManager.hpp"
 #include "world/Chunk.hpp"
-#include "world/BlockRegistry.hpp"
+#include "render/VoxelCoreRegistry.hpp"
+#include "world/GameBlockRegistry.hpp"
 #include "world/WorldGenerator.hpp"
 #include "world/World.hpp"
 
@@ -45,9 +46,17 @@ int main() {
     Render::TextureManager textureManager;
     std::vector<std::string> uniqueTexturePaths;
 
-    auto blockRegistry = World::BlockOps::LoadRegistryFromFile("assets/data/blocks.json", uniqueTexturePaths);
+    Render::VoxelCoreRegistry engineCoreRegistry;
+    Game::BlockConfigRegistry gameConfigRegistry;
 
-    blockRegistry.textureArrayID = textureManager.CreateTextureArray(uniqueTexturePaths, 256, 256);
+    // Ingest unified manifest asset specifications 
+    if (!gameConfigRegistry.LoadGameAssets("assets/data/game_assets.json", engineCoreRegistry, uniqueTexturePaths)) {
+        std::cerr << "CRITICAL: Game module failed to reconcile simulation options or files!" << std::endl;
+        return -1;
+    }
+
+    // Bind texture array records natively onto our core engine records
+    engineCoreRegistry.textureArrayID = textureManager.CreateTextureArray(uniqueTexturePaths, 256, 256);
 
     Renderer renderer;
     Render::ChunkRenderer chunkRenderer;
@@ -64,7 +73,7 @@ int main() {
     std::cout << "WORLD PIPELINE INITIATED: Running Seed -> " << runtimeSeed << std::endl;
 
     World::World gameWorld;
-    gameWorld.GenerateDiorama(12, 5, 12, runtimeSeed, blockRegistry);
+    gameWorld.GenerateDiorama(12, 5, 12, runtimeSeed, engineCoreRegistry, gameConfigRegistry);
 
     float islandCenter = (6.0f * static_cast<float>(World::CHUNK_SIZE) * 8.0f);
     camera.SetTarget(glm::vec3(islandCenter, 38.0f, islandCenter));
@@ -145,7 +154,7 @@ int main() {
 
         isoShader.Bind();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, blockRegistry.textureArrayID);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, engineCoreRegistry.textureArrayID);
         isoShader.SetInt("uTextureArray", 0);
 
         float currentSeconds = windAnimationClock.getElapsedTime().asSeconds();

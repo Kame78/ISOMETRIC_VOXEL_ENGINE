@@ -12,25 +12,45 @@ constexpr float halfX = BLOCK_WIDTH / 2.0f;
 constexpr float halfY = BLOCK_HEIGHT / 2.0f;
 constexpr float halfZ = BLOCK_DEPTH / 2.0f;
 
-bool ChunkMesher::IsAir(int x, int y, int z, 
-                      const World::Chunk& currentChunk,
+[[nodiscard]] static inline bool IsTransparent(int x, int y, int z, 
+                      auto voxelView,
                       const World::Chunk* left, 
                       const World::Chunk* right, 
                       const World::Chunk* back, 
                       const World::Chunk* front,
                       const World::Chunk* bottom, 
-                      const World::Chunk* top ) noexcept
+                      const World::Chunk* top,
+                      const VoxelCoreRegistry& registry) noexcept
 {
     const int maxDim = static_cast<int>(World::CHUNK_SIZE);
 
-    if (x < 0)       return left ? (left->GetBlock(maxDim - 1, y, z) == 0) : true; 
-    if (x >= maxDim) return right ? (right->GetBlock(0, y, z) == 0) : true;
-    if (y < 0)       return bottom ? (bottom->GetBlock(x, maxDim - 1, z) == 0) : true;
-    if (y >= maxDim) return top ? (top->GetBlock(x, 0, z) == 0) : true;
-    if (z < 0)       return back ? (back->GetBlock(x, y, maxDim - 1) == 0) : true;
-    if (z >= maxDim) return front ? (front->GetBlock(x, y, 0) == 0) : true;
+    if (x < 0) {
+        if(!left) return true;
+        return VoxelOps::IsTransparent(registry, left->AsMdspan()[maxDim - 1, y, z]);
+    }
+    if (x >= maxDim) {
+        if(!right) return true;
+        return VoxelOps::IsTransparent(registry, right->AsMdspan()[0, y, z]);
+    }
+    if (y < 0) {
+        if(!bottom) return true;
+        return VoxelOps::IsTransparent(registry, top->AsMdspan()[x, maxDim - 1, z]);
+    }
+    if ( y >= maxDim) {
+        if (!top) return true;
+        return VoxelOps::IsTransparent(registry, top->AsMdspan()[x, 0, z]);
+    }
+    if (z < 0) {
+        if(!back) return true;
+        return VoxelOps::IsTransparent(registry, back->AsMdspan()[x, y, maxDim - 1]);    
+    }
+    if (z >= maxDim) {
+        if(!front) return true;
+        return VoxelOps::IsTransparent(registry, front->AsMdspan()[x, y, 0]);
+    }
 
-    return currentChunk.GetBlock(static_cast<size_t>(x), static_cast<size_t>(y), static_cast<size_t>(z)) == 0;
+    return VoxelOps::IsTransparent(registry, voxelView[x, y, z]);
+
 }
 
 void ChunkMesher::BuildMesh(const World::Chunk& chunk,
@@ -38,10 +58,12 @@ void ChunkMesher::BuildMesh(const World::Chunk& chunk,
                             const World::Chunk* left,    const World::Chunk* right, 
                             const World::Chunk* back,    const World::Chunk* front,
                             const World::Chunk* bottom, const World::Chunk* top,
-                            const World::BlockRegistryTable& registry) noexcept             
+                            const VoxelCoreRegistry& registry) noexcept             
 {
+    auto voxelView = chunk.AsMdspan();
+
     std::vector<Vertex> vertices;
-    vertices.reserve(World::CHUNK_VOLUME * 2);
+    vertices.reserve(World::CHUNK_VOLUME);
 
     for(size_t x = 0; x < World::CHUNK_SIZE; ++x) {
         int ix = static_cast<int>(x);
@@ -50,34 +72,51 @@ void ChunkMesher::BuildMesh(const World::Chunk& chunk,
             for(size_t z = 0; z < World::CHUNK_SIZE; ++z) {
                 int iz = static_cast<int>(z);
 
-                World::VoxelTypeID block = chunk.GetBlock(x, y, z);
-                if (block == 0) continue;
+                const World::VoxelTypeID voxelId = voxelView[x, y, z];
+                if (voxelId == 0) continue;
+
+                const MeshTopology topology = VoxelOps::GetTopology(registry, voxelId);
                 
-                if (y == World::CHUNK_SIZE - 1ULL) {
-                    if (IsAir(ix, iy + 1, iz, chunk, left, right, back, front, bottom, top)) 
-                        AddTopFace(vertices, ix, iy, iz, block, registry);
-                } else if (chunk.GetBlock(x, y + 1ULL, z) == 0) {
-                    AddTopFace(vertices, ix, iy, iz, block, registry);
-                }
+                switch (topology) {
+                    case MeshTopology::OpaqueCube: {
 
-                if (y == 0ULL) {
-                    if (IsAir(ix, iy - 1, iz, chunk, left, right, back, front, bottom, top)) 
-                        AddBottomFace(vertices, ix, iy, iz, block, registry);
-                } else if (chunk.GetBlock(x, y - 1ULL, z) == 0) {
-                    AddBottomFace(vertices, ix, iy, iz, block, registry);
-                }
+                        if (iy == static_cast<int>(World::CHUNK_SIZE) - 1) {
+                            if (IsTransparent(ix, iy + 1, iz, voxelView, left, right, back, front, bottom, top, registry)) 
+                                AddTopFace(vertices, ix, iy, iz, voxelId, registry);
+                        } else if (VoxelOps::IsTransparent(registry, voxelView[x, y + 1, z])) {
+                            AddTopFace(vertices, ix, iy, iz, voxelId, registry);
+                        }
 
-                if (IsAir(ix, iy, iz + 1, chunk, left, right, back, front, bottom, top)) AddFrontFace(vertices, ix, iy, iz, block, registry);
-                if (IsAir(ix, iy, iz - 1, chunk, left, right, back, front, bottom, top)) AddBackFace(vertices, ix, iy, iz, block, registry);
-                if (IsAir(ix - 1, iy, iz, chunk, left, right, back, front, bottom, top)) AddLeftFace(vertices, ix, iy, iz, block, registry);
-                if (IsAir(ix + 1, iy, iz, chunk, left, right, back, front, bottom, top)) AddRightFace(vertices, ix, iy, iz, block, registry);    
+                        if (iy == 0) {
+                            if (IsTransparent(ix, iy - 1, iz, voxelView, left, right, back, front, bottom, top, registry))
+                                AddBottomFace(vertices, ix, iy, iz, voxelId, registry);
+                        } else if (VoxelOps::IsTransparent(registry, voxelView[x, y - 1, z])) {
+                            AddBottomFace(vertices, ix, iy, iz, voxelId, registry);
+                        }
+
+                        if (IsTransparent(ix, iy, iz + 1, voxelView, left, right, back, front, bottom, top, registry)) AddFrontFace(vertices, ix, iy, iz, voxelId, registry);
+                        if (IsTransparent(ix, iy, iz - 1, voxelView, left, right, back, front, bottom, top, registry)) AddBackFace(vertices, ix, iy, iz, voxelId, registry);
+                        if (IsTransparent(ix - 1, iy, iz, voxelView, left, right, back, front, bottom, top, registry)) AddLeftFace(vertices, ix, iy, iz, voxelId, registry);
+                        if (IsTransparent(ix + 1, iy, iz, voxelView, left, right, back, front, bottom, top, registry)) AddRightFace(vertices, ix, iy, iz, voxelId, registry);    
+                        break;
+                    }
+
+                    case MeshTopology::CrossQuad: {
+                        AddCrossQuadGeometry(vertices, ix, iy, iz, voxelId, registry);
+                        break;
+                    }
+                    case MeshTopology::Fluid:
+                    case MeshTopology::Air:
+                    default:
+                        break;
+                    }
+                }
             }
         }
+        outMesh.Create(vertices);
     }
-    outMesh.Create(vertices);
-}
 
-void ChunkMesher::AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
+void ChunkMesher::AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, 1.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
@@ -93,7 +132,7 @@ void ChunkMesher::AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z,
     vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {1.0f, 1.0f}, col});
 }
 
-void ChunkMesher::AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
+void ChunkMesher::AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, -1.0f, 0.0f);
     glm::vec4 col = registry.colors[id];
@@ -108,7 +147,7 @@ void ChunkMesher::AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int
     vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, 1.0f}, col});
 }
 
-void ChunkMesher::AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
+void ChunkMesher::AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, 0.0f, 1.0f);
     
@@ -128,7 +167,7 @@ void ChunkMesher::AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int 
     vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, vTop},    col});
 }
 
-void ChunkMesher::AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
+void ChunkMesher::AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(0.0f, 0.0f, -1.0f);
     
@@ -148,7 +187,7 @@ void ChunkMesher::AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z
     vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, vBottom}, col});
 }
 
-void ChunkMesher::AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
+void ChunkMesher::AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(-1.0f, 0.0f, 0.0f);
     
@@ -168,7 +207,7 @@ void ChunkMesher::AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z
     vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, vTop},    col});
 }
 
-void ChunkMesher::AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept {
+void ChunkMesher::AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept {
     glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
     glm::vec3 norm(1.0f, 0.0f, 0.0f);
     
@@ -187,4 +226,33 @@ void ChunkMesher::AddRightFace(std::vector<Vertex>& vertices, int x, int y, int 
     vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, vTop},    col});
     vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, vBottom}, col});
 }
+
+void ChunkMesher::AddCrossQuadGeometry(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept {
+    const glm::vec3 pos(static_cast<float>(x) * BLOCK_WIDTH, static_cast<float>(y) * BLOCK_HEIGHT, static_cast<float>(z) * BLOCK_DEPTH);
+    constexpr glm::vec3 norm(0.0f, 1.0f, 0.0f);
+    glm::vec4 col = registry.colors[id];
+    col.a = static_cast<float>(registry.textureIndices[id][0]);
+
+    const float vBottom = static_cast<float>(y) / 8.0f;
+    const float vTop    = static_cast<float>(y + 1) / 8.0f;
+
+    // --- Quad Plane 1: Diagonal from Back-Left to Front-Right ---
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z + halfZ}, norm, {1.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {1.0f, vTop},    col});
+    
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z - halfZ}, norm, {0.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z + halfZ}, norm, {1.0f, vTop},    col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z - halfZ}, norm, {0.0f, vTop},    col});
+
+    // --- Quad Plane 2: Diagonal from Front-Left to Back-Right ---
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y - halfY, pos.z - halfZ}, norm, {1.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {1.0f, vTop},    col});
+    
+    vertices.push_back({{pos.x - halfX, pos.y - halfY, pos.z + halfZ}, norm, {0.0f, vBottom}, col});
+    vertices.push_back({{pos.x + halfX, pos.y + halfY, pos.z - halfZ}, norm, {1.0f, vTop},    col});
+    vertices.push_back({{pos.x - halfX, pos.y + halfY, pos.z + halfZ}, norm, {0.0f, vTop},    col});
+}
+
 } // namespace Render

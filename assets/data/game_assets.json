@@ -1,0 +1,77 @@
+{
+    "terrain_blocks": [
+        {
+            "string_id": "engine:grass",
+            "generation_layer": "surface",
+            "movement_cost": 1.0,
+            "solid": true,
+            "transparent": false,
+            "mesh_topology": "cube",
+            "color": [1.0, 1.0, 1.0, 1.0],
+            "textures": [
+                "assets/textures/grass.png", "none", "assets/textures/grass.png",
+                "none", "none", "assets/textures/grass.png"
+            ]
+        },
+        {
+            "string_id": "engine:dirt",
+            "generation_layer": "subsurface",
+            "movement_cost": 1.0,
+            "solid": true,
+            "transparent": false,
+            "mesh_topology": "cube",
+            "color": [1.0, 1.0, 1.0, 1.0],
+            "textures": [
+                "assets/textures/dirt.png", "none", "assets/textures/dirt.png",
+                "none", "none", "assets/textures/dirt.png"
+            ]
+        },
+        {
+            "string_id": "engine:stone",
+            "generation_layer": "base",
+            "movement_cost": 1.0,
+            "solid": true,
+            "transparent": false,
+            "mesh_topology": "cube",
+            "color": [1.0, 1.0, 1.0, 1.0],
+            "textures": [
+                "assets/textures/rock.png", "none", "assets/textures/rock.png",
+                "none", "none", "assets/textures/rock.png"
+            ]
+        },
+        {
+            "string_id": "engine:water",
+            "generation_layer": "none",
+            "movement_cost": 5.0,
+            "solid": false,
+            "transparent": true,
+            "mesh_topology": "fluid",
+            "color": [1.0, 1.0, 1.0, 1.0],
+            "textures": [
+                "assets/textures/water_top.png", "none", "assets/textures/water_top.png",
+                "none", "none", "assets/textures/water_top.png"
+            ]
+        }
+    ],
+    "procedural_decorations": [
+        {
+            "string_id": "engine:tree",
+            "generation_layer": "surface",
+            "movement_cost": 2.5,
+            "solid": false,
+            "transparent": true,
+            "mesh_topology": "cross_quad",
+            "color": [1.0, 1.0, 1.0, 1.0],
+            "textures": [
+                "assets/textures/tree.png", "none", "none", "none", "none", "none"
+            ],
+            "decoration_rules": {
+                "min_height": 3,
+                "max_height": 38,
+                "min_land_mask": 0.2,
+                "spawn_chance": 0.018,
+                "hash_salt": 773
+            }
+        }
+    ]
+}

@@ -2,7 +2,8 @@
 #include <vector>
 #include "Mesh.hpp"
 #include "../world/Chunk.hpp"
-#include "../world/BlockRegistry.hpp"
+#include "VoxelCoreRegistry.hpp"
+
 
 namespace Render {
 
@@ -12,13 +13,13 @@ namespace Render {
 
         static void BuildMesh(const World::Chunk& chunk,
                               Mesh& outMesh,
-                              const World::Chunk* leftNeighbor   = nullptr,
-                              const World::Chunk* rightNeighbor  = nullptr,
-                              const World::Chunk* backNeighbor   = nullptr,
-                              const World::Chunk* frontNeighbor  = nullptr,
-                              const World::Chunk* bottomNeighbor = nullptr,
-                              const World::Chunk* topNeighbor    = nullptr,
-                              const World::BlockRegistryTable& registry = {}) noexcept;
+                              const World::Chunk* leftNeighbor,
+                              const World::Chunk* rightNeighbor,
+                              const World::Chunk* backNeighbor,
+                              const World::Chunk* frontNeighbor,
+                              const World::Chunk* bottomNeighbor,
+                              const World::Chunk* topNeighbor,
+                              const VoxelCoreRegistry& registry) noexcept;
     
     private:
 
@@ -31,12 +32,12 @@ namespace Render {
                       const World::Chunk* bottom, 
                       const World::Chunk* top ) noexcept;
 
-    static void AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept;
-    static void AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept;
-    static void AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept;
-    static void AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept;
-    static void AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept;
-    static void AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const World::BlockRegistryTable& registry) noexcept;
-
+    static void AddTopFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept;
+    static void AddBottomFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept;
+    static void AddFrontFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept;
+    static void AddBackFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept;
+    static void AddLeftFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept;
+    static void AddRightFace(std::vector<Vertex>& vertices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept;
+    static void AddCrossQuadGeometry(std::vector<Vertex>& vetices, int x, int y, int z, World::VoxelTypeID id, const VoxelCoreRegistry& registry) noexcept;
     };
 }

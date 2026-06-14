@@ -18,22 +18,17 @@ namespace World {
 
         WorldGenerator() = default;
         ~WorldGenerator() = default;
-
-        WorldGenerator(const WorldGenerator&) = delete;
-        WorldGenerator& operator=(const WorldGenerator&) = delete;
-
-        [[nodiscard]] static StrataLayerPalette CompileDynamicPalette( const BlockRegistryTable& registry) noexcept;
         
         void GenerateChunk(
             Chunk& chunk, 
-            int chunkX, 
-            int chunkY, 
-            int chunkZ, 
+            int cx, 
+            int cy, 
+            int cz, 
             float centerX, 
             float centerZ, 
             float radius, 
             uint32_t seed, 
             int totalWorldHeight,
-            const StrataLayerPalette& layers) const noexcept;
+            const StrataLayerPalette& palette) const noexcept;
      };
  }

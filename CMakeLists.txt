@@ -42,12 +42,12 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/render/Renderer.cpp
     src/render/ChunkRenderer.cpp
     src/render/ChunkMesher.cpp
-    src/world/BlockRegistry.cpp
     src/math/NoiseMath.cpp
     src/world/WorldGenerator.cpp
     src/world/World.cpp
     src/render/TextureManager.cpp
-    src/world/WorldDecorator.cpp
+    src/world/WorldDecoratorSystem.cpp
+    src/world/GameBlockRegistry.cpp
 )
 
 # ==============================================================================
