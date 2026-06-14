@@ -24,7 +24,7 @@ namespace World::Systems {
         const int worldOffsetZ = chunkZ * static_cast<int>(CHUNK_SIZE);
 
         alignas(32) std::array<int, CHUNK_SIZE * CHUNK_SIZE> surfaceHeights{};
-        alignas(32) std::array<bool, CHUNK_SIZE * CHUNK_SIZE> landMasks{};
+        alignas(32) std::array<float, CHUNK_SIZE * CHUNK_SIZE> landMasks{};
         alignas(32) std::array<uint32_t, CHUNK_SIZE * CHUNK_SIZE> baseHashes{};
 
         for (size_t x = 0; x < CHUNK_SIZE; ++x) {
@@ -58,7 +58,7 @@ namespace World::Systems {
                 const uint32_t baseHash = baseHashes[linearIdx];
 
                 for (const auto& rule : rules) {
-                    if(currentMask < rule.minLandMask)
+                    if(currentMask < rule.minLandMask) continue;
                     if(surfaceY < rule.minHeight || surfaceY > rule.maxHeight) continue;
 
                     uint32_t ruleHash = baseHash ^ static_cast<uint32_t>(rule.hashSalt);
@@ -67,7 +67,7 @@ namespace World::Systems {
 
                     if (randValue > (1.0f - rule.spawnChance)) {
                         const int targetVoxelY = surfaceY + 1;
-                        const int targetChunkY = targetVoxelY / static_cast<size_t>(targetVoxelY & 15);
+                        const int targetChunkY = targetVoxelY / static_cast<int>(CHUNK_SIZE);
                         const size_t localY = static_cast<size_t>(targetVoxelY & 15);
 
                         const size_t chunkIdx = static_cast<size_t>(chunkX + (chunkZ * widthChunks) + (targetChunkY * widthChunks * depthChunks));
@@ -78,10 +78,8 @@ namespace World::Systems {
                         }
                         break;
                     }
-
                 }
             }
         }
-
     }
 }
